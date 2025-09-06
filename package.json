@@ -25,10 +25,12 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.2",
+    "@tailwindcss/vite": "^4.1.13",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "sass-embedded": "^1.92.1"
+    "sass-embedded": "^1.92.1",
+    "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
