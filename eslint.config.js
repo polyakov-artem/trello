@@ -7,21 +7,22 @@ import reactDom from 'eslint-plugin-react-dom';
 import reactCompiler from 'eslint-plugin-react-compiler';
 import { defineConfig } from 'eslint/config';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslint from '@eslint/js';
 
 export default defineConfig(
-  {
-    ignores: ['**/build/**', '**/dist/**'],
-  },
-  tseslint.configs.recommended,
-  tseslint.configs.recommendedTypeChecked,
-  reactHooks.configs['recommended-latest'],
-  reactRefresh.configs.vite,
-  reactX.configs['recommended-typescript'],
-  reactDom.configs.recommended,
-  reactCompiler.configs.recommended,
-  eslintPluginPrettierRecommended,
+  { ignores: ['**/build/**', '**/dist/**'] },
   {
     files: ['**/*.{ts,tsx}'],
+    extends: [
+      eslint.configs.recommended,
+      tseslint.configs.recommendedTypeChecked,
+      reactHooks.configs['recommended-latest'],
+      reactRefresh.configs.vite,
+      reactX.configs['recommended-typescript'],
+      reactDom.configs.recommended,
+      reactCompiler.configs.recommended,
+      eslintPluginPrettierRecommended,
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
