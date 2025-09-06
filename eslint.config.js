@@ -4,7 +4,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import reactX from "eslint-plugin-react-x";
 import reactDom from "eslint-plugin-react-dom";
-
+import reactCompiler from "eslint-plugin-react-compiler";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
@@ -17,6 +17,7 @@ export default defineConfig(
   reactRefresh.configs.vite,
   reactX.configs["recommended-typescript"],
   reactDom.configs.recommended,
+  reactCompiler.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
