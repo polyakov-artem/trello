@@ -24,7 +24,8 @@
   "dependencies": {
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "sass-embedded": "^1.92.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
