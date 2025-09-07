@@ -1,10 +1,11 @@
 import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
 import { ROUTER_PATHS } from '@/shared/constants/routes';
-import RootLayout from '@/shared/ui/layouts/RootLayout';
+import RootLayout from '@/shared/ui/layouts/RootLayout/RootLayout';
+import { Header } from '@/widgets/Header';
 
 const router = createBrowserRouter([
   {
-    element: <RootLayout header={<h1>Header</h1>} />,
+    element: <RootLayout header={<Header />} />,
     path: ROUTER_PATHS.HOME,
     children: [
       {
