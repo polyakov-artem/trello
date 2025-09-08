@@ -9,7 +9,7 @@ const router = createBrowserRouter([
     path: ROUTER_PATHS.HOME,
     children: [
       {
-        path: ROUTER_PATHS.HOME,
+        index: true,
         loader: () => redirect(ROUTER_PATHS.USERS),
       },
       {
