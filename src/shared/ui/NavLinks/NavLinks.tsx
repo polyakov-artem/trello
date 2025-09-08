@@ -1,4 +1,5 @@
 import type { PropsWithClassName } from '@/shared/types/types';
+import clsx from 'clsx';
 import type { FC } from 'react';
 import { NavLink } from 'react-router';
 
@@ -6,9 +7,9 @@ export type NavLinksProps = PropsWithClassName & {
   links: Array<[string, string]>;
 };
 
-export const NavLinks: FC<NavLinksProps> = ({ links }) => {
+export const NavLinks: FC<NavLinksProps> = ({ className, links }) => {
   return (
-    <ul className="flex gap-3">
+    <ul className={clsx('flex gap-3', className)}>
       {links.map(([link, text]) => (
         <li key={link}>
           <NavLink
