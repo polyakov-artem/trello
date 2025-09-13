@@ -1,3 +1,4 @@
+import { delay } from '@/shared/lib/delay';
 import { persistStorage } from '@/shared/lib/persistStorage';
 import { nanoid } from 'nanoid';
 
@@ -16,6 +17,7 @@ const ERROR_USER_REMOVING_FAILED = 'Failed to remove user';
 
 export const userApi = {
   async addUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
+    await delay(500);
     if (throwError) {
       throw new Error(ERROR_USER_ADDING_FAILED);
     }
@@ -27,6 +29,7 @@ export const userApi = {
   },
 
   async removeUser(id: string, throwError?: boolean): Promise<void> {
+    await delay(500);
     if (throwError) {
       throw new Error(ERROR_USER_REMOVING_FAILED);
     }
@@ -40,6 +43,7 @@ export const userApi = {
   },
 
   async getUsers(throwError?: boolean): Promise<User[]> {
+    await delay(500);
     if (throwError) {
       throw new Error(ERROR_USERS_LOADING_FAILED);
     }
