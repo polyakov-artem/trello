@@ -1,10 +1,11 @@
 import type { FC } from 'react';
 import { AppRouter } from './AppRouter';
 import { ToastContainer, Slide } from 'react-toastify';
+import { AppLoader } from './appLoader';
 
 const App: FC = () => {
   return (
-    <>
+    <AppLoader>
       <AppRouter />
       <ToastContainer
         position="top-right"
@@ -19,7 +20,7 @@ const App: FC = () => {
         theme="colored"
         transition={Slide}
       />
-    </>
+    </AppLoader>
   );
 };
 
