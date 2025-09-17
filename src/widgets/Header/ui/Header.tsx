@@ -16,14 +16,12 @@ const LINKS = [
 
 export const Header: FC<HeaderProps> = ({ className, userPreview }) => {
   return (
-    <header
-      className={clsx(
-        'px-4 py-5 border-b border-b-slate-300 flex justify-between items-center bg-white ',
-        className
-      )}>
-      <Logo />
-      <NavLinks links={LINKS} />
-      {userPreview}
+    <header className={clsx('border-b border-b-slate-300  bg-white', className)}>
+      <div className="flex items-center justify-between container mx-auto px-4 py-5 gap-4">
+        <Logo />
+        <NavLinks links={LINKS} />
+        {userPreview}
+      </div>
     </header>
   );
 };

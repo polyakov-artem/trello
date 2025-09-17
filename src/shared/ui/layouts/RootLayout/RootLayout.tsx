@@ -9,7 +9,7 @@ const RootLayout: FC<RootLayoutProps> = ({ header }) => {
   return (
     <div className="min-h-dvh flex flex-col">
       {header}
-      <main className="grow">
+      <main className="grow flex flex-col">
         <Outlet />
       </main>
     </div>
