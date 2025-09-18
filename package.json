@@ -25,6 +25,7 @@
     ]
   },
   "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@tailwindcss/vite": "^4.1.13",
     "antd": "^5.27.3",
     "clsx": "^2.1.1",
@@ -37,6 +38,7 @@
     "react-toastify": "^11.0.5",
     "sass-embedded": "^1.92.1",
     "tailwindcss": "^4.1.13",
+    "yup": "^1.7.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
