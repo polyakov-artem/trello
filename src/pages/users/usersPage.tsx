@@ -4,6 +4,7 @@ import { ErrorWithReloadBtn } from '@/widgets/ErrorWithReload/ErrorWithReloadBtn
 import { ERROR_SUBTITLES } from '@/shared/constants/errorMsgs';
 import type { FC } from 'react';
 import { FormRegistration } from '@/features/manageUser';
+import { UsersList } from '@/widgets/UsersList/UsersList';
 
 export const UsersPage: FC = () => {
   const isLoadingUsers = useUsersStore.use.isLoadingUsers();
@@ -16,7 +17,14 @@ export const UsersPage: FC = () => {
   } else if (usersLoadingError) {
     content = <ErrorWithReloadBtn title={usersLoadingError} subtitle={ERROR_SUBTITLES.DEFAULT} />;
   } else {
-    content = <FormRegistration className={'max-w-[500px] self-center w-full'} />;
+    content = (
+      <>
+        <div className="max-w-[500px] self-center w-full">
+          <FormRegistration className="mb-8" />
+          <UsersList />
+        </div>
+      </>
+    );
   }
 
   return <div className="container mx-auto px-4 py-4 grow flex flex-col">{content}</div>;

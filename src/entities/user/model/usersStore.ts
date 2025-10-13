@@ -7,7 +7,7 @@ export type UsersStoreState = {
   isLoadingUsers: boolean;
   usersLoadingError: string;
   isAddingUser: boolean;
-  isRemovingUser: boolean;
+  deletionQueue: Record<string, boolean>;
 
   setUsers: (users: User[]) => void;
   setIsLoadingUsers: (isLoadingUsers: boolean) => void;
@@ -17,7 +17,9 @@ export type UsersStoreState = {
   setIsAddingUser: (isAddingUser: boolean) => void;
 
   removeUser: (id: string) => void;
-  setIsRemovingUser: (isRemovingUser: boolean) => void;
+  addToDeletionQueue: (id: string) => void;
+  removeFromDeletionQueue: (id: string) => void;
+  isRemovingUserWithId: (id: string) => boolean;
 };
 
 export const useUsersStoreBase = create<UsersStoreState>((set, get) => ({
@@ -25,7 +27,7 @@ export const useUsersStoreBase = create<UsersStoreState>((set, get) => ({
   usersLoadingError: '',
   isLoadingUsers: false,
   isAddingUser: false,
-  isRemovingUser: false,
+  deletionQueue: {},
 
   setUsers: (users: User[]) => set({ users }),
   setIsLoadingUsers: (isLoadingUsers: boolean) => set({ isLoadingUsers }),
@@ -39,7 +41,22 @@ export const useUsersStoreBase = create<UsersStoreState>((set, get) => ({
   removeUser: (id: string) => {
     set({ users: get().users.filter((u) => u.id !== id) });
   },
-  setIsRemovingUser: (isRemovingUser: boolean) => set({ isRemovingUser }),
+
+  addToDeletionQueue: (id: string) => {
+    const deletionQueue = { ...get().deletionQueue };
+    deletionQueue[id] = true;
+    set({ deletionQueue });
+  },
+
+  removeFromDeletionQueue: (id: string) => {
+    const deletionQueue = { ...get().deletionQueue };
+    delete deletionQueue[id];
+    set({ deletionQueue });
+  },
+
+  isRemovingUserWithId: (id: string) => {
+    return get().deletionQueue[id];
+  },
 }));
 
 export const useUsersStore = createSelectors(useUsersStoreBase);
