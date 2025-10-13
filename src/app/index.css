@@ -1,1 +1,6 @@
 @import 'tailwindcss';
+
+.anticon-spin,
+.anticon-spin::before {
+  display: inline-flex;
+}
