@@ -1,10 +1,10 @@
 import { ScreenLoader } from '@/shared/ui/ScreenLoader/ScreenLoader';
 import { useUsersStore } from '@/entities/user/model/usersStore';
 import { ErrorWithReloadBtn } from '@/widgets/ErrorWithReload/ErrorWithReloadBtn';
-import { ERROR_SUBTITLES } from '@/shared/constants/errorMsgs';
 import type { FC } from 'react';
 import { FormRegistration } from '@/features/manageUser';
 import { UsersList } from '@/widgets/UsersList/UsersList';
+import { errorAdvices } from '@/shared/constants/errorMsgs';
 
 export const UsersPage: FC = () => {
   const isLoadingUsers = useUsersStore.use.isLoadingUsers();
@@ -15,7 +15,7 @@ export const UsersPage: FC = () => {
   if (isLoadingUsers) {
     content = <ScreenLoader />;
   } else if (usersLoadingError) {
-    content = <ErrorWithReloadBtn title={usersLoadingError} subtitle={ERROR_SUBTITLES.DEFAULT} />;
+    content = <ErrorWithReloadBtn title={usersLoadingError} subtitle={errorAdvices.tryAgain} />;
   } else {
     content = (
       <>

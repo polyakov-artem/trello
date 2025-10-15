@@ -1,7 +1,7 @@
-import { ERROR_TITLES } from '../constants/errorMsgs';
+import { errors } from '../constants/errorMsgs';
 
 export const getErrorMessage = (error: unknown): string => {
-  let errorMessage = ERROR_TITLES.UNEXPECTED;
+  let errorMessage = errors.unexpected;
 
   if (error instanceof Error && error.message) {
     errorMessage = error.message;
