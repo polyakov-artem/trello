@@ -5,28 +5,29 @@ import { useCallback } from 'react';
 
 export const useLoadUsers = () => {
   const setUsers = useUsersStore.use.setUsers();
-  const setIsLoadingUsers = useUsersStore.use.setIsLoadingUsers();
-  const setUsersLoadingError = useUsersStore.use.setUsersLoadingError();
-  const getState = useUsersStore.getState;
+  const setUsersState = useUsersStore.use.setUsersState();
+  const isLoadingUsers = useUsersStore.use.isLoadingUsersFn();
 
   const loadUsers = useCallback(
     async (throwError?: boolean) => {
-      if (getState().isLoadingUsers) {
+      if (isLoadingUsers()) {
         return;
       }
-      setIsLoadingUsers(true);
+      setUsersState({ isLoading: true });
 
       try {
         const users = await userApi.getUsers(throwError);
         setUsers(users);
-      } catch (error) {
-        setUsersLoadingError(getErrorMessage(error));
+      } catch (e) {
+        const error = getErrorMessage(e);
+        setUsersState({ error });
+        return { error };
       } finally {
-        setIsLoadingUsers(false);
+        setUsersState({ isLoading: false });
       }
     },
 
-    [getState, setIsLoadingUsers, setUsers, setUsersLoadingError]
+    [isLoadingUsers, setUsers, setUsersState]
   );
 
   return { loadUsers };

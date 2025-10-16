@@ -7,15 +7,15 @@ import { UsersList } from '@/widgets/UsersList/UsersList';
 import { errorAdvices } from '@/shared/constants/errorMsgs';
 
 export const UsersPage: FC = () => {
-  const isLoadingUsers = useUsersStore.use.isLoadingUsers();
-  const usersLoadingError = useUsersStore.use.usersLoadingError();
+  const usersState = useUsersStore.use.usersState();
+  const { isLoading, error } = usersState;
 
   let content;
 
-  if (isLoadingUsers) {
+  if (isLoading) {
     content = <ScreenLoader />;
-  } else if (usersLoadingError) {
-    content = <ErrorWithReloadBtn title={usersLoadingError} subtitle={errorAdvices.tryAgain} />;
+  } else if (error) {
+    content = <ErrorWithReloadBtn title={error} subtitle={errorAdvices.tryAgain} />;
   } else {
     content = (
       <>

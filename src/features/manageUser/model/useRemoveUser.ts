@@ -10,14 +10,14 @@ export const useRemoveUser = () => {
   const removeUserFromStore = useUsersStore.use.removeUser();
   const addToDeletionQueue = useUsersStore.use.addToDeletionQueue();
   const removeFromDeletionQueue = useUsersStore.use.removeFromDeletionQueue();
-  const isRemovingUserWithId = useUsersStore.use.isRemovingUserWithId();
+  const checkIfRemovingUserWithId = useUsersStore.use.checkIfRemovingUserWithId();
   const { getConfirmation } = useConfirmation();
 
   const removeUser = async (
     id: string,
     throwError: boolean = false
   ): Promise<{ error?: string } | undefined> => {
-    if (isRemovingUserWithId(id)) {
+    if (checkIfRemovingUserWithId(id)) {
       return;
     }
 

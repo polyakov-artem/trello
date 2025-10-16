@@ -17,7 +17,8 @@ const signupSchema = Yup.object().shape({
 
 export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
   const { addUser } = useAddUser();
-  const isAddingUser = useUsersStore.use.isAddingUser();
+  const addingState = useUsersStore.use.addingState();
+  const isAddingUser = addingState.isLoading;
 
   return (
     <Formik
