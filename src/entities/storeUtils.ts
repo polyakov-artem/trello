@@ -5,28 +5,31 @@ export type EntryState = {
 
 export type GetEntryStateParams = Partial<EntryState>;
 
-export const getEntryInitialState = () => {
+export const getEntryInitialState = (): EntryState => {
   return {
     isLoading: false,
-    error: '',
+    error: undefined,
   };
 };
 
-export const getEntryLoadingState = () => {
+export const getEntryLoadingState = (): EntryState => {
   return {
     isLoading: true,
-    error: '',
+    error: undefined,
   };
 };
 
-export const getEntryErrorState = (error: string) => {
+export const getEntryErrorState = (error: string): EntryState => {
   return {
     isLoading: false,
     error,
   };
 };
 
-export const getEntryState = ({ error, isLoading }: GetEntryStateParams) => {
+export const getEntryState = ({
+  error,
+  isLoading,
+}: GetEntryStateParams): EntryState | undefined => {
   if (error) {
     return getEntryErrorState(error);
   } else if (isLoading === true) {
@@ -34,4 +37,6 @@ export const getEntryState = ({ error, isLoading }: GetEntryStateParams) => {
   } else if (isLoading === false) {
     return getEntryInitialState();
   }
+
+  return undefined;
 };

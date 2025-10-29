@@ -5,7 +5,7 @@ export type RootLayoutProps = {
   header: ReactNode;
 };
 
-const RootLayout: FC<RootLayoutProps> = ({ header }) => {
+export const RootLayout: FC<RootLayoutProps> = ({ header }) => {
   return (
     <div className="min-h-dvh flex flex-col">
       {header}
@@ -15,5 +15,3 @@ const RootLayout: FC<RootLayoutProps> = ({ header }) => {
     </div>
   );
 };
-
-export default RootLayout;

@@ -5,7 +5,7 @@ import type { PropsWithClassName } from '@/shared/types/types';
 import * as Yup from 'yup';
 import { AvatarSelector, useUsersStore } from '@/entities/user';
 import clsx from 'clsx';
-import { useAddUser } from '@/features/manageUser';
+import { useRegisterUser } from '@/features/manageUser';
 
 const signupSchema = Yup.object().shape({
   name: Yup.string()
@@ -16,9 +16,11 @@ const signupSchema = Yup.object().shape({
 });
 
 export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
-  const { addUser } = useAddUser();
-  const addingState = useUsersStore.use.addingState();
-  const isAddingUser = addingState.isLoading;
+  const { registerUser } = useRegisterUser();
+  const creationState = useUsersStore.use.creationState();
+  const checkIfCreatingUser = useUsersStore.use.checkIfCreatingUser();
+  const isLoading = creationState.isLoading;
+  const isDisabled = isLoading;
 
   return (
     <Formik
@@ -28,7 +30,11 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
       }}
       validationSchema={signupSchema}
       onSubmit={async (values, { setFieldError, resetForm }) => {
-        const result = await addUser(values);
+        if (checkIfCreatingUser()) {
+          return;
+        }
+
+        const result = await registerUser(values);
 
         if (result?.error) {
           setFieldError('name', result.error);
@@ -44,7 +50,7 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
               Name
             </label>
 
-            <Field as={Input} id="name" name="name" placeholder="Name" disabled={isAddingUser} />
+            <Field as={Input} id="name" name="name" placeholder="Name" disabled={isDisabled} />
             <p className="text-red-500 text-sm leading-[1] ">
               {touched.name ? errors.name : ''}&nbsp;
             </p>
@@ -66,7 +72,8 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
             className="self-center"
             type="primary"
             htmlType="submit"
-            loading={isAddingUser}
+            loading={isLoading}
+            disabled={isDisabled}
             iconPosition={'end'}>
             Register
           </Button>

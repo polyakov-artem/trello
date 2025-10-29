@@ -9,8 +9,8 @@ export type User = {
 export type UserWithoutId = Omit<User, 'id'>;
 
 export const userApi = {
-  async addUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
-    return await serverUserApi.addUser(user, throwError);
+  async registerUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
+    return await serverUserApi.registerUser(user, throwError);
   },
 
   async removeUser(id: string, throwError?: boolean): Promise<void> {
@@ -21,7 +21,13 @@ export const userApi = {
     return await serverUserApi.getUsers(throwError);
   },
 
-  async getUserById(userId: string, throwError?: boolean): Promise<User> {
-    return await serverUserApi.getUserById(userId, throwError);
+  async getUserById(
+    userId: string,
+    sessionId: string,
+    abortController: Promise<void>,
+    throwError?: boolean
+  ) {
+    const userFetchPromise = serverUserApi.getUserById(userId, sessionId, throwError);
+    return (await Promise.race([abortController, userFetchPromise])) as User;
   },
 };

@@ -1,15 +1,12 @@
 import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
 import { ROUTER_PATHS } from '@/shared/constants/routes';
-import RootLayout from '@/shared/ui/layouts/RootLayout/RootLayout';
-import { UserPreview } from '@/entities/user';
+import { RootLayout } from '@/shared/ui/layouts/RootLayout/RootLayout';
 import { UsersPage } from '@/pages/users/usersPage';
 import { Header } from '@/widgets/Header';
 
 const router = createBrowserRouter([
   {
-    element: (
-      <RootLayout header={<Header userPreview={<UserPreview avatarId={1} name="John Doe" />} />} />
-    ),
+    element: <RootLayout header={<Header />} />,
     path: ROUTER_PATHS.HOME,
     children: [
       {

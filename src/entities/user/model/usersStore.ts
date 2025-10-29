@@ -9,22 +9,17 @@ import {
 } from '@/entities/storeUtils';
 
 export type UsersStoreState = {
-  sessionUser?: User;
-  sessionUserState: EntryState;
-  setSessionUser: (user: User) => void;
-  setSessionUserState: (value: GetEntryStateParams) => void;
-
   users: User[];
   usersState: EntryState;
   setUsers: (users: User[]) => void;
   setUsersState: (value: GetEntryStateParams) => void;
   addUser: (user: User) => void;
   removeUser: (id: string) => void;
-  checkIfAddingUser: () => boolean;
-  isLoadingUsersFn: () => boolean;
+  checkIfCreatingUser: () => boolean;
+  checkIfLoadingUsers: () => boolean;
 
-  addingState: EntryState;
-  setAddingState: (value: GetEntryStateParams) => void;
+  creationState: EntryState;
+  setCreationState: (value: GetEntryStateParams) => void;
 
   deletionQueue: Record<string, boolean>;
   addToDeletionQueue: (id: string) => void;
@@ -33,20 +28,6 @@ export type UsersStoreState = {
 };
 
 export const useUsersStoreBase = create<UsersStoreState>((set, get) => ({
-  sessionUser: undefined,
-  sessionUserState: getEntryInitialState(),
-
-  setSessionUser: (sessionUser?: User) => {
-    set({ sessionUser });
-  },
-
-  setSessionUserState: (props: GetEntryStateParams) => {
-    const nexState = getEntryState(props);
-    if (nexState) {
-      set({ sessionUserState: nexState });
-    }
-  },
-
   users: [],
   usersState: getEntryInitialState(),
 
@@ -55,9 +36,9 @@ export const useUsersStoreBase = create<UsersStoreState>((set, get) => ({
   },
 
   setUsersState: (props: GetEntryStateParams) => {
-    const nexState = getEntryState(props);
-    if (nexState) {
-      set({ usersState: nexState });
+    const nextState = getEntryState(props);
+    if (nextState) {
+      set({ usersState: nextState });
     }
   },
 
@@ -69,20 +50,20 @@ export const useUsersStoreBase = create<UsersStoreState>((set, get) => ({
     set({ users: get().users.filter((u) => u.id !== id) });
   },
 
-  isLoadingUsersFn: () => {
+  checkIfLoadingUsers: () => {
     return get().usersState.isLoading;
   },
 
-  addingState: getEntryInitialState(),
-  setAddingState: (props: GetEntryStateParams) => {
-    const nexState = getEntryState(props);
-    if (nexState) {
-      set({ addingState: nexState });
+  creationState: getEntryInitialState(),
+  setCreationState: (props: GetEntryStateParams) => {
+    const nextState = getEntryState(props);
+    if (nextState) {
+      set({ creationState: nextState });
     }
   },
 
-  checkIfAddingUser: () => {
-    return get().addingState.isLoading;
+  checkIfCreatingUser: () => {
+    return get().creationState.isLoading;
   },
 
   deletionQueue: {},

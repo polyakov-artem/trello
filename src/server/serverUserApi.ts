@@ -1,6 +1,7 @@
 import { delay } from '@/shared/lib/delay';
 import { nanoid } from 'nanoid';
 import localForage from 'localforage';
+import { loadSessions } from './serverAuthApi';
 
 export type User = {
   id: string;
@@ -17,7 +18,7 @@ const ERROR_USER_ADDING_FAILED = 'Failed to add user';
 const ERROR_USER_REMOVING_FAILED = 'Failed to remove user';
 
 export const serverUserApi = {
-  async addUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
+  async registerUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
     await delay(500);
 
     if (throwError) {
@@ -51,18 +52,24 @@ export const serverUserApi = {
     return loadUsers();
   },
 
-  async getUserById(userId: string, throwError?: boolean): Promise<User> {
+  async getUserById(userId: string, sessionId: string, throwError?: boolean): Promise<User> {
     await delay(500);
 
     if (throwError) {
-      throw new Error(ERROR_USERS_LOADING_FAILED);
+      throw new Error(ERROR_USER_LOADING_FAILED);
+    }
+
+    const sessions = await loadSessions();
+    const session = sessions[sessionId];
+
+    if (!session) {
+      throw new Error(ERROR_USER_LOADING_FAILED);
     }
 
     const users = await loadUsers();
-
     const user = users.find((u) => u.id === userId);
 
-    if (!user) {
+    if (!user || userId !== session.userId) {
       throw new Error(ERROR_USER_LOADING_FAILED);
     }
 

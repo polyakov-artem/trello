@@ -1,4 +1,6 @@
-export { FormRegistration } from './ui/FormRegistration/FormRegistration';
+export { useRegisterUser } from './model/useRegisterUser';
+export { useAutoSyncSessionUser } from './model/useAutoSyncSessionUser';
+export { useLoadSessionUserById } from './model/useLoadSessionUserById';
 export { useLoadUsers } from './model/useLoadUsers';
-export { useAddUser } from './model/useAddUser';
-export { BtnRemoveUser } from './ui/BtnRemoveUser/BtnRemoveUser';
+export { useRemoveUser } from './model/useRemoveUser';
+export { FormRegistration } from './ui/FormRegistration/FormRegistration';
