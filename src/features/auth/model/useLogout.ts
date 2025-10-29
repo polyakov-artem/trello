@@ -17,13 +17,13 @@ export const useLogout = () => {
       }
 
       setSessionState({ isLoading: true });
-      setSession(undefined);
 
       try {
         await authApi.logout(sessionId, throwError);
       } catch {
         // ignore
       }
+      setSession(undefined);
 
       await sessionRepository.removeSession();
       setSessionState({ isLoading: false });

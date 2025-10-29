@@ -57,9 +57,7 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
           </div>
 
           <div>
-            <label className="font-bold" htmlFor="name">
-              Avatar
-            </label>
+            <label className="font-bold mb-2 block">Avatar</label>
             <AvatarSelector
               name="avatarId"
               checkedValue={values.avatarId}

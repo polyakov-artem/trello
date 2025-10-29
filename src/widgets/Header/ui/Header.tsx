@@ -19,7 +19,8 @@ const LINKS = [
 export const Header: FC<HeaderProps> = ({ className }) => {
   const sessionUser = useSessionStore.use.sessionUser();
   const sessionUserState = useSessionStore.use.sessionUserState();
-  const isLoading = sessionUserState.isLoading;
+  const sessionState = useSessionStore.use.sessionState();
+  const isLoading = sessionUserState.isLoading || sessionState.isLoading;
 
   return (
     <header className={clsx('border-b border-b-slate-300  bg-white', className)}>
