@@ -12,8 +12,9 @@ export type HeaderProps = PropsWithClassName & {
 };
 
 const LINKS = [
-  [ROUTER_PATHS.BOARDS, 'Boards'],
   [ROUTER_PATHS.USERS, 'Users'],
+  [ROUTER_PATHS.TASKS, 'Tasks'],
+  [ROUTER_PATHS.BOARDS, 'Boards'],
 ] satisfies Array<[string, string]>;
 
 export const Header: FC<HeaderProps> = ({ className }) => {

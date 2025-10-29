@@ -3,6 +3,7 @@ import { ROUTER_PATHS } from '@/shared/constants/routes';
 import { RootLayout } from '@/shared/ui/layouts/RootLayout/RootLayout';
 import { UsersPage } from '@/pages/users/usersPage';
 import { Header } from '@/widgets/Header';
+import { TasksPage } from '@/pages/tasks/tasksPage';
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path: ROUTER_PATHS.BOARDS,
         element: 'Boards page',
+      },
+      {
+        path: ROUTER_PATHS.TASKS,
+        element: <TasksPage />,
       },
     ],
   },
