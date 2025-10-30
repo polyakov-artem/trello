@@ -1,6 +1,5 @@
 import { sessionRepository, useSessionStore } from '@/entities/session';
 import { authApi } from '@/shared/api/auth/authApi';
-import { getErrorMessage } from '@/shared/lib/getErrorMessage';
 import { useCallback } from 'react';
 
 export const useLoginWithUserId = () => {
@@ -10,30 +9,23 @@ export const useLoginWithUserId = () => {
   const checkIfActiveSession = useSessionStore.use.checkIfActiveSession();
 
   const loginWithUserId = useCallback(
-    async (userId: string, throwError?: boolean) => {
+    async (userId: string) => {
       if (checkIfLoadingSession() || checkIfActiveSession()) {
         return;
       }
 
       setSessionState({ isLoading: true });
+      const { data, error } = await authApi.loginWithUserId(userId);
 
-      try {
-        const session = await authApi.loginWithUserId(userId, throwError);
-
-        try {
-          await sessionRepository.saveSession(session);
-        } catch {
-          // ignore
-        }
-
-        setSession(session);
-        setSessionState({ isLoading: false });
-        return { data: session };
-      } catch (e) {
-        const error = getErrorMessage(e);
+      if (error) {
         setSessionState({ error });
         return { error };
       }
+
+      await sessionRepository.saveSession(data);
+      setSession(data);
+      setSessionState({ isLoading: false });
+      return { data };
     },
     [checkIfActiveSession, checkIfLoadingSession, setSession, setSessionState]
   );

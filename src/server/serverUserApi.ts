@@ -12,18 +12,12 @@ export type User = {
 export type UserWithoutId = Omit<User, 'id'>;
 
 const USERS_STORAGE_KEY = 'server_trello_users';
-const ERROR_USERS_LOADING_FAILED = 'Failed to load users';
 const ERROR_USER_LOADING_FAILED = 'Failed to load user';
-const ERROR_USER_ADDING_FAILED = 'Failed to add user';
-const ERROR_USER_REMOVING_FAILED = 'Failed to remove user';
 
 export const serverUserApi = {
-  async registerUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
+  async registerUser(user: UserWithoutId): Promise<User> {
     await delay(500);
 
-    if (throwError) {
-      throw new Error(ERROR_USER_ADDING_FAILED);
-    }
     const users = await loadUsers();
     const newUser = { ...user, id: nanoid() };
     users.push(newUser);
@@ -31,33 +25,21 @@ export const serverUserApi = {
     return newUser;
   },
 
-  async removeUser(id: string, throwError?: boolean): Promise<void> {
+  async removeUser(id: string): Promise<void> {
     await delay(500);
-
-    if (throwError) {
-      throw new Error(ERROR_USER_REMOVING_FAILED);
-    }
 
     const users = await loadUsers();
     await saveUsers(users.filter((u) => u.id !== id));
   },
 
-  async getUsers(throwError?: boolean): Promise<User[]> {
+  async getUsers(): Promise<User[]> {
     await delay(500);
-
-    if (throwError) {
-      throw new Error(ERROR_USERS_LOADING_FAILED);
-    }
 
     return loadUsers();
   },
 
-  async getUserById(userId: string, sessionId: string, throwError?: boolean): Promise<User> {
+  async getUserById(userId: string, sessionId: string): Promise<User> {
     await delay(500);
-
-    if (throwError) {
-      throw new Error(ERROR_USER_LOADING_FAILED);
-    }
 
     const sessions = await loadSessions();
     const session = sessions[sessionId];

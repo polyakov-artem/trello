@@ -17,8 +17,10 @@ export const BtnLogin: FC<BtnLoginProps> = ({ className, id }) => {
     setIsLoading(true);
     void switchUser({ id, logout, loginWithUserId })
       .then((result) => {
-        if (result?.error) {
-          toast.error(result.error);
+        const errorMsg = result?.error?.message;
+
+        if (errorMsg) {
+          toast.error(errorMsg);
         }
       })
       .finally(() => setIsLoading(false));

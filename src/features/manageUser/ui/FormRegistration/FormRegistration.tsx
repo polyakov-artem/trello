@@ -20,7 +20,6 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
   const creationState = useUsersStore.use.creationState();
   const checkIfCreatingUser = useUsersStore.use.checkIfCreatingUser();
   const isLoading = creationState.isLoading;
-  const isDisabled = isLoading;
 
   return (
     <Formik
@@ -36,8 +35,12 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
 
         const result = await registerUser(values);
 
-        if (result?.error) {
-          setFieldError('name', result.error);
+        if (!result) {
+          return;
+        }
+
+        if (result.error) {
+          setFieldError('name', result.error.message);
           return;
         }
 
@@ -50,7 +53,7 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
               Name
             </label>
 
-            <Field as={Input} id="name" name="name" placeholder="Name" disabled={isDisabled} />
+            <Field as={Input} id="name" name="name" placeholder="Name" />
             <p className="text-red-500 text-sm leading-[1] ">
               {touched.name ? errors.name : ''}&nbsp;
             </p>
@@ -71,7 +74,6 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
             type="primary"
             htmlType="submit"
             loading={isLoading}
-            disabled={isDisabled}
             iconPosition={'end'}>
             Register
           </Button>

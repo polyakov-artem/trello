@@ -1,23 +1,21 @@
 import { serverAuthApi } from '@/server/serverAuthApi';
+import { getResponseData } from '@/shared/lib/getResponseData';
 
 export type Session = {
   sessionId: string;
   userId: string;
 };
 
-export type Sessions = Record<string, Session>;
-export type LoginResponse = Session;
-
 export const authApi = {
-  async loginWithSessionId(sessionId: string, throwError?: boolean): Promise<LoginResponse> {
-    return await serverAuthApi.loginWithSessionId(sessionId, throwError);
+  async loginWithSessionId(sessionId: string) {
+    return await getResponseData(serverAuthApi.loginWithSessionId(sessionId));
   },
 
-  async loginWithUserId(userId: string, throwError?: boolean): Promise<LoginResponse> {
-    return await serverAuthApi.loginWithUserId(userId, throwError);
+  async loginWithUserId(userId: string) {
+    return await getResponseData(serverAuthApi.loginWithUserId(userId));
   },
 
-  async logout(sessionId: string, throwError?: boolean): Promise<void> {
-    return await serverAuthApi.logout(sessionId, throwError);
+  async logout(sessionId: string) {
+    return await getResponseData(serverAuthApi.logout(sessionId));
   },
 };

@@ -18,8 +18,10 @@ export const BtnRemoveUser: FC<BtnRemoveUserProps> = ({ className, id }) => {
 
   const handleRemove = useCallback(() => {
     void removeUser(id, logout).then((result) => {
-      if (result?.error) {
-        toast.error(result.error);
+      const errorMsg = result?.error?.message;
+
+      if (errorMsg) {
+        toast.error(errorMsg);
       }
     });
   }, [id, logout, removeUser]);

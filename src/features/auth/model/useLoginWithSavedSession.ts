@@ -1,6 +1,5 @@
 import { sessionRepository, useSessionStore } from '@/entities/session';
 import { authApi } from '@/shared/api/auth/authApi';
-import { getErrorMessage } from '@/shared/lib/getErrorMessage';
 import { useCallback } from 'react';
 
 export const useLoginWithSavedSession = () => {
@@ -9,40 +8,32 @@ export const useLoginWithSavedSession = () => {
   const checkIfLoadingSession = useSessionStore.use.checkIfLoadingSession();
   const checkIfActiveSession = useSessionStore.use.checkIfActiveSession();
 
-  const loginWithSavedSession = useCallback(
-    async (throwError?: boolean) => {
-      if (checkIfLoadingSession() || checkIfActiveSession()) {
-        return;
-      }
+  const loginWithSavedSession = useCallback(async () => {
+    if (checkIfLoadingSession() || checkIfActiveSession()) {
+      return;
+    }
 
-      setSessionState({ isLoading: true });
+    setSessionState({ isLoading: true });
 
-      const savedSession = await sessionRepository.loadSession();
+    const savedSession = await sessionRepository.loadSession();
 
-      if (!savedSession) {
-        setSessionState({ isLoading: false });
-        return;
-      }
+    if (!savedSession) {
+      setSessionState({ isLoading: false });
+      return;
+    }
 
-      try {
-        const session = await authApi.loginWithSessionId(savedSession.sessionId, throwError);
+    const { data, error } = await authApi.loginWithSessionId(savedSession.sessionId);
 
-        try {
-          await sessionRepository.saveSession(session);
-        } catch {
-          // ignore
-        }
+    if (error) {
+      setSessionState({ error });
+      return { error };
+    }
 
-        setSession(session);
-        setSessionState({ isLoading: false });
-      } catch (e) {
-        const error = getErrorMessage(e);
-        setSessionState({ error });
-        return { error };
-      }
-    },
-    [checkIfActiveSession, checkIfLoadingSession, setSession, setSessionState]
-  );
+    await sessionRepository.saveSession(data);
+    setSession(data);
+    setSessionState({ isLoading: false });
+    return { data };
+  }, [checkIfActiveSession, checkIfLoadingSession, setSession, setSessionState]);
 
   return {
     loginWithSavedSession,

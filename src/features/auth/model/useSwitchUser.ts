@@ -1,19 +1,17 @@
 import { useCallback } from 'react';
 import type { Session } from '@/entities/session';
+import type { ErrorInfo } from '@/shared/lib/getResponseData';
 
 export type SwitchUserProps = {
   id: string;
-  logout: (throwError?: boolean) => Promise<void | { data: boolean }>;
-  loginWithUserId: (
-    userId: string,
-    throwError?: boolean
-  ) => Promise<
+  logout: () => Promise<void | { data: boolean }>;
+  loginWithUserId: (userId: string) => Promise<
     | {
         data: Session;
         error?: undefined;
       }
     | {
-        error: string;
+        error: ErrorInfo;
         data?: undefined;
       }
     | undefined

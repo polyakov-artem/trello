@@ -8,29 +8,22 @@ export const useLogout = () => {
   const checkIfLoadingSession = useSessionStore.use.checkIfLoadingSession();
   const getSessionId = useSessionStore.use.getSessionId();
 
-  const logout = useCallback(
-    async (throwError?: boolean) => {
-      const sessionId = getSessionId();
+  const logout = useCallback(async () => {
+    const sessionId = getSessionId();
 
-      if (checkIfLoadingSession() || !sessionId) {
-        return;
-      }
+    if (checkIfLoadingSession() || !sessionId) {
+      return;
+    }
 
-      setSessionState({ isLoading: true });
+    setSessionState({ isLoading: true });
 
-      try {
-        await authApi.logout(sessionId, throwError);
-      } catch {
-        // ignore
-      }
-      setSession(undefined);
+    await authApi.logout(sessionId);
+    setSession(undefined);
 
-      await sessionRepository.removeSession();
-      setSessionState({ isLoading: false });
-      return { data: true };
-    },
-    [checkIfLoadingSession, getSessionId, setSession, setSessionState]
-  );
+    await sessionRepository.removeSession();
+    setSessionState({ isLoading: false });
+    return { data: true };
+  }, [checkIfLoadingSession, getSessionId, setSession, setSessionState]);
 
   return {
     logout,

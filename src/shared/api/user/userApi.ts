@@ -1,4 +1,5 @@
 import { serverUserApi } from '@/server/serverUserApi';
+import { getResponseData } from '@/shared/lib/getResponseData';
 
 export type User = {
   id: string;
@@ -9,25 +10,22 @@ export type User = {
 export type UserWithoutId = Omit<User, 'id'>;
 
 export const userApi = {
-  async registerUser(user: UserWithoutId, throwError?: boolean): Promise<User> {
-    return await serverUserApi.registerUser(user, throwError);
+  async registerUser(user: UserWithoutId) {
+    return await getResponseData(serverUserApi.registerUser(user));
   },
 
-  async removeUser(id: string, throwError?: boolean): Promise<void> {
-    return await serverUserApi.removeUser(id, throwError);
+  async removeUser(id: string) {
+    return await getResponseData(serverUserApi.removeUser(id));
   },
 
-  async getUsers(throwError?: boolean): Promise<User[]> {
-    return await serverUserApi.getUsers(throwError);
+  async getUsers() {
+    return await getResponseData(serverUserApi.getUsers());
   },
 
-  async getUserById(
-    userId: string,
-    sessionId: string,
-    abortController: Promise<void>,
-    throwError?: boolean
-  ) {
-    const userFetchPromise = serverUserApi.getUserById(userId, sessionId, throwError);
-    return (await Promise.race([abortController, userFetchPromise])) as User;
+  async getUserById(userId: string, sessionId: string, abortController: Promise<void>) {
+    const userFetchPromise = serverUserApi.getUserById(userId, sessionId);
+    return await getResponseData(
+      Promise.race([abortController, userFetchPromise]) as Promise<User>
+    );
   },
 };

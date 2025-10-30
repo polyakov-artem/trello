@@ -1,6 +1,5 @@
 import { useUsersStore } from '@/entities/user';
 import { userApi, type UserWithoutId } from '@/shared/api/user/userApi';
-import { getErrorMessage } from '@/shared/lib/getErrorMessage';
 import { useCallback } from 'react';
 
 export const useRegisterUser = () => {
@@ -9,22 +8,22 @@ export const useRegisterUser = () => {
   const checkIfCreatingUser = useUsersStore.use.checkIfCreatingUser();
 
   const registerUser = useCallback(
-    async (user: UserWithoutId, throwError?: boolean) => {
+    async (user: UserWithoutId) => {
       if (checkIfCreatingUser()) {
         return;
       }
 
       setCreationState({ isLoading: true });
+      const { data, error } = await userApi.registerUser(user);
 
-      try {
-        const newUser = await userApi.registerUser(user, throwError);
-        addUserToStore(newUser);
-        setCreationState({ isLoading: false });
-      } catch (e) {
-        const error = getErrorMessage(e);
+      if (error) {
         setCreationState({ error });
         return { error };
       }
+
+      addUserToStore(data);
+      setCreationState({ isLoading: false });
+      return { data };
     },
     [addUserToStore, checkIfCreatingUser, setCreationState]
   );

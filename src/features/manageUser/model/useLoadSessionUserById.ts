@@ -1,8 +1,14 @@
 import { useSessionStore } from '@/entities/session';
 import { userApi } from '@/shared/api/user/userApi';
 import { errors } from '@/shared/constants/errorMsgs';
-import { getErrorMessage } from '@/shared/lib/getErrorMessage';
 import { useCallback } from 'react';
+
+let abortController: AbortController | undefined;
+
+export const cancelLoadSessionUserByIdRequest = () => {
+  abortController?.abort();
+  abortController = undefined;
+};
 
 export const useLoadSessionUserById = () => {
   const setSessionUser = useSessionStore.use.setSessionUser();
@@ -10,32 +16,28 @@ export const useLoadSessionUserById = () => {
   const checkIfLoadingSessionUser = useSessionStore.use.checkIfLoadingSessionUser();
 
   const loadSessionUserById = useCallback(
-    async (
-      userId: string,
-      sessionId: string,
-      abortController: Promise<void>,
-      throwError?: boolean
-    ) => {
+    async (userId: string, sessionId: string, abortController: Promise<void>) => {
       if (checkIfLoadingSessionUser()) {
         return;
       }
 
       setSessionUserState({ isLoading: true });
 
-      try {
-        const user = await userApi.getUserById(userId, sessionId, abortController, throwError);
-        setSessionUser(user);
-        setSessionUserState({ isLoading: false });
-      } catch (e) {
-        const error = getErrorMessage(e);
+      const { data, error } = await userApi.getUserById(userId, sessionId, abortController);
 
-        if (error === errors.abortedByUser) {
+      if (error) {
+        if (error.message === errors.abortedByUser) {
           setSessionUserState({ isLoading: false });
           return;
         }
 
         setSessionUserState({ error });
+        return { error };
       }
+
+      setSessionUser(data);
+      setSessionUserState({ isLoading: false });
+      return { data };
     },
 
     [checkIfLoadingSessionUser, setSessionUser, setSessionUserState]

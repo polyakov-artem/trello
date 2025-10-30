@@ -1,7 +1,6 @@
 import { useSessionStore } from '@/entities/session';
 import { useUsersStore } from '@/entities/user';
 import { userApi } from '@/shared/api/user/userApi';
-import { getErrorMessage } from '@/shared/lib/getErrorMessage';
 import { useConfirmation } from '@/shared/ui/Confirmation/useConfirmation';
 
 export const TITLE = 'Удаление пользователя';
@@ -17,31 +16,33 @@ export const useRemoveUser = () => {
   const checkIfLoadingSession = useSessionStore.use.checkIfLoadingSession();
   const { getConfirmation } = useConfirmation();
 
-  const removeUser = async (id: string, logout: LogOut, throwError?: boolean) => {
+  const removeUser = async (id: string, logout: LogOut) => {
     if (checkIfRemovingUserWithId(id) || checkIfLoadingSession()) {
       return;
     }
 
-    try {
-      const confirmed = await getConfirmation({
-        title: TITLE,
-        body: TEXT,
-      });
+    const confirmed = await getConfirmation({
+      title: TITLE,
+      body: TEXT,
+    });
 
-      if (!confirmed) {
-        return;
-      }
-
-      addToDeletionQueue(id);
-      await logout();
-      await userApi.removeUser(id, throwError);
-      removeUserFromStore(id);
-      return { data: true };
-    } catch (error) {
-      return { error: getErrorMessage(error) };
-    } finally {
-      removeFromDeletionQueue(id);
+    if (!confirmed) {
+      return;
     }
+
+    addToDeletionQueue(id);
+    await logout();
+
+    const { error } = await userApi.removeUser(id);
+
+    if (error) {
+      removeFromDeletionQueue(id);
+      return { error };
+    }
+
+    removeFromDeletionQueue(id);
+    removeUserFromStore(id);
+    return { data: true };
   };
 
   return { removeUser };

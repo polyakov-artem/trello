@@ -1,6 +1,8 @@
+import type { ErrorInfo } from '@/shared/lib/getResponseData';
+
 export type EntryState = {
   isLoading: boolean;
-  error?: string;
+  error?: ErrorInfo;
 };
 
 export type GetEntryStateParams = Partial<EntryState>;
@@ -19,7 +21,7 @@ export const getEntryLoadingState = (): EntryState => {
   };
 };
 
-export const getEntryErrorState = (error: string): EntryState => {
+export const getEntryErrorState = (error: ErrorInfo): EntryState => {
   return {
     isLoading: false,
     error,

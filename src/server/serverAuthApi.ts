@@ -15,15 +15,11 @@ export type LoginResponse = Session;
 const SESSIONS_STORAGE_KEY = 'server_trello_sessions';
 const ERROR_FAILED_TO_LOGIN_WITH_USER_DATA = 'Failed to login with user data';
 const ERROR_FAILED_TO_LOGIN_WITH_SESSION_DATA = 'Failed to login with session data';
-const ERROR_FAILED_TO_LOGOUT = 'Failed to logout';
 
 export const serverAuthApi = {
-  async loginWithUserId(userId: string, throwError?: boolean): Promise<LoginResponse> {
+  async loginWithUserId(userId: string): Promise<LoginResponse> {
     await delay(500);
 
-    if (throwError) {
-      throw new Error(ERROR_FAILED_TO_LOGIN_WITH_USER_DATA);
-    }
     const users = await loadUsers();
     const user = users.find((u) => u.id === userId);
 
@@ -39,12 +35,8 @@ export const serverAuthApi = {
     return newSession;
   },
 
-  async loginWithSessionId(sessionId: string, throwError?: boolean): Promise<LoginResponse> {
+  async loginWithSessionId(sessionId: string): Promise<LoginResponse> {
     await delay(500);
-
-    if (throwError) {
-      throw new Error(ERROR_FAILED_TO_LOGIN_WITH_USER_DATA);
-    }
 
     const sessions = await loadSessions();
     const session = sessions[sessionId];
@@ -65,16 +57,13 @@ export const serverAuthApi = {
     return response;
   },
 
-  async logout(sessionId: string, throwError?: boolean): Promise<void> {
+  async logout(sessionId: string): Promise<boolean> {
     await delay(500);
-
-    if (throwError) {
-      throw new Error(ERROR_FAILED_TO_LOGOUT);
-    }
 
     const sessions = await loadSessions();
     delete sessions[sessionId];
     await saveSessions(sessions);
+    return true;
   },
 };
 
