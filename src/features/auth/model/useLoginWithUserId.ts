@@ -14,18 +14,19 @@ export const useLoginWithUserId = () => {
         return;
       }
 
-      setSessionState({ isLoading: true });
-      const { data, error } = await authApi.loginWithUserId(userId);
+      setSessionState(true);
 
-      if (error) {
-        setSessionState({ error });
-        return { error };
+      const result = await authApi.loginWithUserId(userId);
+
+      if (result.ok) {
+        await sessionRepository.saveSession(result.data);
+        setSession(result.data);
+      } else {
+        setSessionState(result.error);
       }
 
-      await sessionRepository.saveSession(data);
-      setSession(data);
-      setSessionState({ isLoading: false });
-      return { data };
+      setSessionState(false);
+      return result;
     },
     [checkIfActiveSession, checkIfLoadingSession, setSession, setSessionState]
   );

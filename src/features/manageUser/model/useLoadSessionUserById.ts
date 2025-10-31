@@ -3,41 +3,34 @@ import { userApi } from '@/shared/api/user/userApi';
 import { errors } from '@/shared/constants/errorMsgs';
 import { useCallback } from 'react';
 
-let abortController: AbortController | undefined;
-
-export const cancelLoadSessionUserByIdRequest = () => {
-  abortController?.abort();
-  abortController = undefined;
-};
-
 export const useLoadSessionUserById = () => {
   const setSessionUser = useSessionStore.use.setSessionUser();
   const setSessionUserState = useSessionStore.use.setSessionUserState();
   const checkIfLoadingSessionUser = useSessionStore.use.checkIfLoadingSessionUser();
 
   const loadSessionUserById = useCallback(
-    async (userId: string, sessionId: string, abortController: Promise<void>) => {
+    async (userId: string, sessionId: string, signal?: AbortSignal) => {
       if (checkIfLoadingSessionUser()) {
         return;
       }
 
-      setSessionUserState({ isLoading: true });
+      setSessionUserState(true);
 
-      const { data, error } = await userApi.getUserById(userId, sessionId, abortController);
+      const result = await userApi.getUserById(userId, sessionId, signal);
 
-      if (error) {
-        if (error.message === errors.abortedByUser) {
-          setSessionUserState({ isLoading: false });
+      if (result.ok) {
+        setSessionUser(result.data);
+      } else {
+        if (result.error.name === errors.abortedByUser) {
+          setSessionUserState(false);
           return;
         }
 
-        setSessionUserState({ error });
-        return { error };
+        setSessionUserState(result.error);
       }
 
-      setSessionUser(data);
-      setSessionUserState({ isLoading: false });
-      return { data };
+      setSessionUserState(false);
+      return result;
     },
 
     [checkIfLoadingSessionUser, setSessionUser, setSessionUserState]

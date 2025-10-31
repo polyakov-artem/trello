@@ -1,13 +1,13 @@
-import { errors } from '@/shared/constants/errorMsgs';
 import { useSessionStore } from '@/entities/session';
 import { useEffect } from 'react';
+import type { FetchResult } from '@/shared/lib/safeFetch';
+import type { User } from '@/shared/api/user/userApi';
 
 export type LoadUserById = (
   userId: string,
   sessionId: string,
-  abortController: Promise<void>,
-  throwError?: boolean
-) => Promise<void>;
+  signal?: AbortSignal
+) => Promise<FetchResult<User> | undefined>;
 
 export const useAutoSyncSessionUser = (loadUserById: LoadUserById) => {
   const session = useSessionStore.use.session();
@@ -19,16 +19,11 @@ export const useAutoSyncSessionUser = (loadUserById: LoadUserById) => {
       return;
     }
 
-    let reject: ((error: Error) => void) | undefined;
-
-    const abortController = new Promise<void>((_res, rej) => {
-      reject = rej;
-    });
-
-    void loadUserById(session.userId, session.sessionId, abortController);
+    const abortController = new AbortController();
+    void loadUserById(session.userId, session.sessionId, abortController.signal);
 
     return () => {
-      reject?.(new Error(errors.abortedByUser));
+      abortController.abort();
       setSessionUser(undefined);
     };
   }, [loadUserById, session, setSessionUser]);

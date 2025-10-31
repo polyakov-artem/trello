@@ -4,9 +4,9 @@ import { useCallback, useState, type FC } from 'react';
 import { useLoginWithUserId, useLogout, useSwitchUser } from '@/features/auth';
 import { toast } from 'react-toastify';
 
-export type BtnLoginProps = { id: string } & PropsWithClassName;
+export type BtnLoginProps = { userId: string } & PropsWithClassName;
 
-export const BtnLogin: FC<BtnLoginProps> = ({ className, id }) => {
+export const BtnLogin: FC<BtnLoginProps> = ({ className, userId }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { logout } = useLogout();
@@ -15,16 +15,15 @@ export const BtnLogin: FC<BtnLoginProps> = ({ className, id }) => {
 
   const handleClick = useCallback(() => {
     setIsLoading(true);
-    void switchUser({ id, logout, loginWithUserId })
-      .then((result) => {
-        const errorMsg = result?.error?.message;
 
-        if (errorMsg) {
-          toast.error(errorMsg);
+    void switchUser({ userId, logout, loginWithUserId })
+      .then((result) => {
+        if (result && result.ok === false) {
+          toast.error(result.error.message);
         }
       })
       .finally(() => setIsLoading(false));
-  }, [id, loginWithUserId, logout, switchUser]);
+  }, [loginWithUserId, logout, switchUser, userId]);
 
   return (
     <>

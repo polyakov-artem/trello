@@ -15,14 +15,14 @@ export const useLogout = () => {
       return;
     }
 
-    setSessionState({ isLoading: true });
+    setSessionState(true);
 
     await authApi.logout(sessionId);
     setSession(undefined);
 
     await sessionRepository.removeSession();
-    setSessionState({ isLoading: false });
-    return { data: true };
+    setSessionState(false);
+    return { success: true };
   }, [checkIfLoadingSession, getSessionId, setSession, setSessionState]);
 
   return {

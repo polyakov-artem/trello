@@ -17,7 +17,7 @@ export const UsersPage: FC = () => {
           renderActions={(id) => (
             <>
               <BtnRemoveUser id={id} />
-              {session?.userId === id ? <BtnLogout /> : <BtnLogin id={id} />}
+              {session?.userId === id ? <BtnLogout /> : <BtnLogin userId={id} />}
             </>
           )}
         />

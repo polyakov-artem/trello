@@ -1,5 +1,5 @@
-import { serverUserApi } from '@/server/serverUserApi';
-import { getResponseData } from '@/shared/lib/getResponseData';
+import { safeFetch } from '@/shared/lib/safeFetch';
+import { API_URL } from '../constants';
 
 export type User = {
   id: string;
@@ -10,22 +10,31 @@ export type User = {
 export type UserWithoutId = Omit<User, 'id'>;
 
 export const userApi = {
-  async registerUser(user: UserWithoutId) {
-    return await getResponseData(serverUserApi.registerUser(user));
+  async registerUser(user: UserWithoutId, signal?: AbortSignal) {
+    return await safeFetch<User>(`${API_URL}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+      signal,
+    });
   },
 
-  async removeUser(id: string) {
-    return await getResponseData(serverUserApi.removeUser(id));
+  async removeUser(id: string, sessionId: string, signal?: AbortSignal) {
+    return await safeFetch<{ success: true }>(`${API_URL}/users/${id}?sessionId=${sessionId}`, {
+      method: 'DELETE',
+      signal,
+    });
   },
 
   async getUsers() {
-    return await getResponseData(serverUserApi.getUsers());
+    return await safeFetch<User[]>(`${API_URL}/users`);
   },
 
-  async getUserById(userId: string, sessionId: string, abortController: Promise<void>) {
-    const userFetchPromise = serverUserApi.getUserById(userId, sessionId);
-    return await getResponseData(
-      Promise.race([abortController, userFetchPromise]) as Promise<User>
-    );
+  async getUserById(userId: string, sessionId: string, signal?: AbortSignal) {
+    return await safeFetch<User>(`${API_URL}/users/${userId}?sessionId=${sessionId}`, {
+      signal,
+    });
   },
 };

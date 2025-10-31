@@ -1,28 +1,23 @@
 import { useCallback } from 'react';
 import type { Session } from '@/entities/session';
-import type { ErrorInfo } from '@/shared/lib/getResponseData';
+import type { FetchResult } from '@/shared/lib/safeFetch';
 
 export type SwitchUserProps = {
-  id: string;
-  logout: () => Promise<void | { data: boolean }>;
-  loginWithUserId: (userId: string) => Promise<
+  userId: string;
+  logout: () => Promise<
     | {
-        data: Session;
-        error?: undefined;
-      }
-    | {
-        error: ErrorInfo;
-        data?: undefined;
+        success: boolean;
       }
     | undefined
   >;
+  loginWithUserId: (userId: string) => Promise<FetchResult<Session> | undefined>;
 };
 
 export const useSwitchUser = () => {
-  const switchUser = useCallback(async ({ id, logout, loginWithUserId }: SwitchUserProps) => {
+  const switchUser = useCallback(async ({ userId, logout, loginWithUserId }: SwitchUserProps) => {
     await logout();
 
-    const result = await loginWithUserId(id);
+    const result = await loginWithUserId(userId);
     return result;
   }, []);
 

@@ -13,26 +13,26 @@ export const useLoginWithSavedSession = () => {
       return;
     }
 
-    setSessionState({ isLoading: true });
+    setSessionState(true);
 
     const savedSession = await sessionRepository.loadSession();
 
     if (!savedSession) {
-      setSessionState({ isLoading: false });
+      setSessionState(false);
       return;
     }
 
-    const { data, error } = await authApi.loginWithSessionId(savedSession.sessionId);
+    const result = await authApi.loginWithSessionId(savedSession.sessionId);
 
-    if (error) {
-      setSessionState({ error });
-      return { error };
+    if (result.ok) {
+      await sessionRepository.saveSession(result.data);
+      setSession(result.data);
+    } else {
+      setSessionState(result.error);
     }
 
-    await sessionRepository.saveSession(data);
-    setSession(data);
-    setSessionState({ isLoading: false });
-    return { data };
+    setSessionState(false);
+    return result;
   }, [checkIfActiveSession, checkIfLoadingSession, setSession, setSessionState]);
 
   return {

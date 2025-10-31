@@ -31,18 +31,16 @@ export const useRemoveUser = () => {
     }
 
     addToDeletionQueue(id);
-    await logout();
+    const sessionId = useSessionStore.getState().getSessionId();
+    const result = await userApi.removeUser(id, sessionId || '');
 
-    const { error } = await userApi.removeUser(id);
-
-    if (error) {
-      removeFromDeletionQueue(id);
-      return { error };
+    if (result.ok) {
+      await logout();
+      removeUserFromStore(id);
     }
 
     removeFromDeletionQueue(id);
-    removeUserFromStore(id);
-    return { data: true };
+    return result;
   };
 
   return { removeUser };

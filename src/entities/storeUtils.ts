@@ -1,11 +1,11 @@
-import type { ErrorInfo } from '@/shared/lib/getResponseData';
+import type { FetchError } from '@/shared/lib/safeFetch';
 
 export type EntryState = {
   isLoading: boolean;
-  error?: ErrorInfo;
+  error?: FetchError;
 };
 
-export type GetEntryStateParams = Partial<EntryState>;
+export type GetEntryStateParams = boolean | FetchError;
 
 export const getEntryInitialState = (): EntryState => {
   return {
@@ -21,22 +21,24 @@ export const getEntryLoadingState = (): EntryState => {
   };
 };
 
-export const getEntryErrorState = (error: ErrorInfo): EntryState => {
+export const getEntryErrorState = (error: FetchError): EntryState => {
   return {
     isLoading: false,
     error,
   };
 };
 
-export const getEntryState = ({
-  error,
-  isLoading,
-}: GetEntryStateParams): EntryState | undefined => {
-  if (error) {
-    return getEntryErrorState(error);
-  } else if (isLoading === true) {
+export const getEntryState = (value: boolean | FetchError): EntryState | undefined => {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'message' in value &&
+    typeof value.message === 'string'
+  ) {
+    return getEntryErrorState(value);
+  } else if (value === true) {
     return getEntryLoadingState();
-  } else if (isLoading === false) {
+  } else if (value === false) {
     return getEntryInitialState();
   }
 

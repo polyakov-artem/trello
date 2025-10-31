@@ -11,17 +11,18 @@ export const useLoadUsers = () => {
     if (checkIfLoadingUsers()) {
       return;
     }
-    setUsersState({ isLoading: true });
+    setUsersState(true);
 
-    const { data, error } = await userApi.getUsers();
+    const result = await userApi.getUsers();
 
-    if (error) {
-      setUsersState({ error });
-      return { error };
+    if (result.ok) {
+      setUsers(result.data);
+      setUsersState(false);
+    } else {
+      setUsersState(result.error);
     }
 
-    setUsers(data);
-    setUsersState({ isLoading: false });
+    return result;
   }, [checkIfLoadingUsers, setUsers, setUsersState]);
 
   return { loadUsers };

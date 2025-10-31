@@ -13,17 +13,17 @@ export const useRegisterUser = () => {
         return;
       }
 
-      setCreationState({ isLoading: true });
-      const { data, error } = await userApi.registerUser(user);
+      setCreationState(true);
+      const result = await userApi.registerUser(user);
 
-      if (error) {
-        setCreationState({ error });
-        return { error };
+      if (result.ok) {
+        addUserToStore(result.data);
+      } else {
+        setCreationState(result.error);
       }
 
-      addUserToStore(data);
-      setCreationState({ isLoading: false });
-      return { data };
+      setCreationState(false);
+      return result;
     },
     [addUserToStore, checkIfCreatingUser, setCreationState]
   );
