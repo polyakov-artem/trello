@@ -14,11 +14,23 @@ export const errorMessages = {
   aborted: 'The operation was canceled by the user',
 } as const;
 
+export type FieldError = {
+  field: string;
+  message: string;
+};
+
 export type FetchError = {
   name: string;
   message: string;
   status?: number;
   statusText?: string;
+  errors?: FieldError[];
+};
+
+export type ServerResponse<T> = {
+  data?: T;
+  errors?: FieldError[];
+  error?: string;
 };
 
 export type FetchResult<T> =
@@ -89,39 +101,34 @@ export async function safeFetch<T>(url: string, options?: RequestInit): Promise<
 
     // Non-OK HTTP responses
     if (!response.ok) {
-      const errorParsingResult = await parseResponseSafe<
-        string | { error?: string; message?: string }
-      >(response);
+      const errorParsingResult = await parseResponseSafe<ServerResponse<T>>(response);
 
-      let msg = '';
-
-      if (errorParsingResult.ok) {
-        const parsedError = errorParsingResult.data;
-
-        if (typeof parsedError === 'object' && parsedError !== null) {
-          const { error, message } = parsedError as { error?: string; message?: string };
-
-          if (error) {
-            msg = error;
-          } else if (message) {
-            msg = message;
-          }
-        } else if (typeof parsedError === 'string') {
-          msg = parsedError;
-        }
-      } else {
-        msg = `${errorMessages.http}: ${response.status} ${response.statusText || 'Unknown'}`;
-      }
-
-      return {
-        ok: false,
+      const errorResult: FetchResult<T> = {
+        ok: false as const,
         error: {
           name: errorNames.http,
           status: response.status,
           statusText: response.statusText,
-          message: msg,
+          message: `${errorMessages.http}: ${response.status} ${response.statusText || 'Unknown'}`,
         },
       };
+
+      if (errorParsingResult.ok) {
+        const { error, errors } = errorParsingResult.data;
+
+        const hasErrorMsg = typeof error === 'string' && !!error;
+        const hasFieldsErrors = Array.isArray(errors) && !!errors.length;
+
+        if (hasErrorMsg) {
+          errorResult.error.message = error;
+        }
+
+        if (hasFieldsErrors) {
+          errorResult.error.errors = errors;
+        }
+      }
+
+      return errorResult;
     }
 
     // OK responses
@@ -143,13 +150,10 @@ export async function safeFetch<T>(url: string, options?: RequestInit): Promise<
     }
 
     const parsedData = dataParsingResult.data;
-    let data: T;
-
-    if (typeof parsedData === 'object' && parsedData !== null && 'data' in parsedData) {
-      data = parsedData.data as T;
-    } else {
-      data = parsedData as T;
-    }
+    const data =
+      typeof parsedData === 'object' && parsedData !== null && 'data' in parsedData
+        ? (parsedData.data as T)
+        : (parsedData as T);
 
     return createResultWithData(data);
   } catch (error) {

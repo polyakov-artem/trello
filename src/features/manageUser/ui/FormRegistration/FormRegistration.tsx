@@ -39,8 +39,15 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
           return;
         }
 
-        if (result.error) {
-          setFieldError('name', result.error.message);
+        if (!result.ok) {
+          const errors = result.error.errors;
+
+          if (errors) {
+            errors.forEach((error) => {
+              setFieldError(error.field, error.message);
+            });
+          }
+
           return;
         }
 

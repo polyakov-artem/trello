@@ -6,7 +6,12 @@ import { useConfirmation } from '@/shared/ui/Confirmation/useConfirmation';
 export const TITLE = 'Удаление пользователя';
 export const TEXT = 'Вы действительно хотите удалить пользователя?';
 
-export type LogOut = (throwError?: boolean) => Promise<void | { data: boolean }>;
+export type LogOut = () => Promise<
+  | {
+      success: boolean;
+    }
+  | undefined
+>;
 
 export const useRemoveUser = () => {
   const removeUserFromStore = useUsersStore.use.removeUser();

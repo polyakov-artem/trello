@@ -40,7 +40,9 @@ const ERROR_USER_NOT_FOUND = 'User not found';
 const ERROR_SESSION_NOT_FOUND = 'Session not found. Please log in again';
 const ERROR_PERMISSION_DENIED = 'You do not have permission to perform this action';
 const ERROR_TASK_NOT_FOUND = 'Task not found';
-const ERROR_MISSING_NAME_OR_AVATAR = 'Name and avatar are required';
+const ERROR_MISSING_NAME = 'Name is required';
+const ERROR_MISSING_AVATAR = 'Avatar is required';
+const ERROR_VALIDATION_FAILED = 'Validation failed';
 
 await fs.mkdir(DATA_DIR, { recursive: true });
 
@@ -91,9 +93,18 @@ async function saveTasks(tasks: Task[]): Promise<void> {
 app.post('/users', async (req: Request, res: Response) => {
   await delay();
   const { name, avatarId } = req.body as { name: string; avatarId: string };
+  const errors = [];
 
-  if (!name || !avatarId) {
-    return res.status(400).json({ error: ERROR_MISSING_NAME_OR_AVATAR });
+  if (!avatarId) {
+    errors.push({ field: 'avatarId', message: ERROR_MISSING_AVATAR });
+  }
+
+  if (!name) {
+    errors.push({ field: 'name', message: ERROR_MISSING_NAME });
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ errors, error: ERROR_VALIDATION_FAILED });
   }
 
   const users = await loadUsers();
@@ -126,6 +137,10 @@ app.get('/users/:id', async (req: Request, res: Response) => {
 
   const userId = session.userId;
 
+  if (userId !== req.params.id) {
+    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+  }
+
   const users = await loadUsers();
   const user = users.find((u) => u.id === userId);
 
@@ -149,6 +164,11 @@ app.delete('/users/:id', async (req: Request, res: Response) => {
   }
 
   const userId = session.userId;
+
+  if (userId !== req.params.id) {
+    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+  }
+
   const users = await loadUsers();
   const updatedUsers = users.filter((u) => u.id !== userId);
 
@@ -180,6 +200,14 @@ app.post('/sessions/login/user', async (req: Request, res: Response) => {
   }
 
   const sessions = await loadSessions();
+
+  const existingSession = Object.values(sessions).find((s) => s.userId === userId);
+
+  if (existingSession) {
+    delete sessions[existingSession.sessionId];
+    await saveSessions(sessions);
+  }
+
   const sessionId = nanoid();
   const newSession: Session = { sessionId, userId };
   await saveSessions({ ...sessions, [sessionId]: newSession });
