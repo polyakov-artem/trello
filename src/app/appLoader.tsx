@@ -1,23 +1,24 @@
 import { useLoginWithSavedSession } from '@/features/auth';
-import {
-  useLoadUsers,
-  useAutoSyncSessionUser,
-  useLoadSessionUserById,
-} from '@/features/manageUser';
+import { useLoadUsers, useLoadSessionUser } from '@/features/manageUser';
+import { useLoadTasks } from '@/features/manageTasks';
 
 import { useEffect, type FC, type PropsWithChildren } from 'react';
 
 export const AppLoader: FC<PropsWithChildren> = ({ children }) => {
   const { loadUsers } = useLoadUsers();
   const { loginWithSavedSession } = useLoginWithSavedSession();
-  const { loadSessionUserById } = useLoadSessionUserById();
-
-  useAutoSyncSessionUser(loadSessionUserById);
+  const { loadSessionUser } = useLoadSessionUser();
+  const { loadTasks } = useLoadTasks();
 
   useEffect(() => {
     void loadUsers();
-    void loginWithSavedSession();
-  }, [loadUsers, loginWithSavedSession]);
+    void loginWithSavedSession().then((result) => {
+      if (result?.ok) {
+        void loadSessionUser();
+        void loadTasks();
+      }
+    });
+  }, [loadSessionUser, loadTasks, loadUsers, loginWithSavedSession]);
 
   return <>{children}</>;
 };

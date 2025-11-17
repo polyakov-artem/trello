@@ -3,7 +3,7 @@ import { Formik, Field, Form } from 'formik';
 import { Button, Input } from 'antd';
 import type { PropsWithClassName } from '@/shared/types/types';
 import * as Yup from 'yup';
-import { AvatarSelector, useUsersStore } from '@/entities/user';
+import { AvatarSelector, useUserCreationStore } from '@/entities/user';
 import clsx from 'clsx';
 import { useRegisterUser } from '@/features/manageUser';
 
@@ -17,9 +17,8 @@ const signupSchema = Yup.object().shape({
 
 export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
   const { registerUser } = useRegisterUser();
-  const creationState = useUsersStore.use.creationState();
-  const checkIfCreatingUser = useUsersStore.use.checkIfCreatingUser();
-  const isLoading = creationState.isLoading;
+  const checkIfCreatingUser = useUserCreationStore.use.checkIfLoading();
+  const isCreatingUser = useUserCreationStore.use.isLoading();
 
   return (
     <Formik
@@ -80,7 +79,7 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
             className="self-center"
             type="primary"
             htmlType="submit"
-            loading={isLoading}
+            loading={isCreatingUser}
             iconPosition={'end'}>
             Register
           </Button>

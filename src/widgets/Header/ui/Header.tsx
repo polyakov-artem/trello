@@ -1,5 +1,5 @@
 import { useSessionStore } from '@/entities/session';
-import { UserPreview } from '@/entities/user';
+import { UserPreview, useSessionUserStore } from '@/entities/user';
 import { ROUTER_PATHS } from '@/shared/constants/routes';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Logo } from '@/shared/ui/Logo/Logo';
@@ -18,10 +18,11 @@ const LINKS = [
 ] satisfies Array<[string, string]>;
 
 export const Header: FC<HeaderProps> = ({ className }) => {
-  const sessionUser = useSessionStore.use.sessionUser();
-  const sessionUserState = useSessionStore.use.sessionUserState();
-  const sessionState = useSessionStore.use.sessionState();
-  const isLoading = sessionUserState.isLoading || sessionState.isLoading;
+  const sessionUser = useSessionUserStore.use.value();
+  const isLoadingSessionUser = useSessionUserStore.use.isLoading();
+  const isLoadingSession = useSessionStore.use.isLoading();
+
+  const isLoading = isLoadingSessionUser || isLoadingSession;
 
   return (
     <header className={clsx('border-b border-b-slate-300  bg-white', className)}>

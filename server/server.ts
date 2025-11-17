@@ -1,6 +1,5 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import multer from 'multer';
 import { nanoid } from 'nanoid';
 import fs from 'fs/promises';
 import path from 'path';
@@ -19,13 +18,12 @@ export type Session = {
 export type Task = {
   id: string;
   authorId: string;
-  editorIds: string[];
+  editorsIds: string[];
   title: string;
   description: string;
   completed: boolean;
 };
 
-const upload = multer();
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -271,17 +269,17 @@ app.get('/tasks', async (req: Request, res: Response) => {
   const userId = session.userId;
 
   const tasks = (await loadTasks()).filter(
-    (t) => t.editorIds.includes(userId) || t.authorId === userId
+    (t) => t.editorsIds.includes(userId) || t.authorId === userId
   );
   res.json({ data: tasks });
 });
 
-app.post('/tasks', upload.none(), async (req: Request, res: Response) => {
+app.post('/tasks', async (req: Request, res: Response) => {
   await delay();
   const { sessionId } = req.query as { sessionId: string };
 
   const {
-    editorIds = [],
+    editorsIds = [],
     title = '',
     description = '',
     completed = false,
@@ -295,13 +293,12 @@ app.post('/tasks', upload.none(), async (req: Request, res: Response) => {
   }
 
   const userId = session.userId;
-
   const tasks = await loadTasks();
 
   const newTask: Task = {
     id: nanoid(),
     authorId: userId,
-    editorIds,
+    editorsIds,
     title,
     description,
     completed,
@@ -316,7 +313,7 @@ app.put('/tasks/:id', async (req: Request, res: Response) => {
   const { sessionId } = req.query as { sessionId: string };
 
   const {
-    editorIds = [],
+    editorsIds = [],
     title = '',
     description = '',
     completed = false,
@@ -340,13 +337,13 @@ app.put('/tasks/:id', async (req: Request, res: Response) => {
 
   const userId = session.userId;
 
-  if (task.authorId !== userId && !task.editorIds.includes(userId)) {
+  if (task.authorId !== userId && !task.editorsIds.includes(userId)) {
     return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
   }
 
   const updatedTask: Task = {
     ...task,
-    editorIds,
+    editorsIds,
     title,
     description,
     completed,
@@ -378,7 +375,7 @@ app.delete('/tasks/:id', async (req: Request, res: Response) => {
 
   const userId = session.userId;
 
-  if (task.authorId !== userId && !task.editorIds.includes(userId)) {
+  if (task.authorId !== userId && !task.editorsIds.includes(userId)) {
     return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
   }
 

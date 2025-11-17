@@ -28,8 +28,8 @@ export const userApi = {
     });
   },
 
-  async getUsers() {
-    return await safeFetch<User[]>(`${API_URL}/users`);
+  async getUsers(signal?: AbortSignal) {
+    return await safeFetch<User[]>(`${API_URL}/users`, { signal });
   },
 
   async getUserById(userId: string, sessionId: string, signal?: AbortSignal) {

@@ -3,32 +3,31 @@ import { authApi } from '@/shared/api/auth/authApi';
 import { useCallback } from 'react';
 
 export const useLoginWithUserId = () => {
-  const setSessionState = useSessionStore.use.setSessionState();
-  const setSession = useSessionStore.use.setSession();
-  const checkIfLoadingSession = useSessionStore.use.checkIfLoadingSession();
-  const checkIfActiveSession = useSessionStore.use.checkIfActiveSession();
+  const setSessionState = useSessionStore.use.setState();
+  const checkIfLoadingSession = useSessionStore.use.checkIfLoading();
+  const getSession = useSessionStore.use.getValue();
 
   const loginWithUserId = useCallback(
     async (userId: string) => {
-      if (checkIfLoadingSession() || checkIfActiveSession()) {
+      if (checkIfLoadingSession() || getSession()) {
         return;
       }
 
-      setSessionState(true);
+      setSessionState({ isLoading: true, error: undefined });
 
       const result = await authApi.loginWithUserId(userId);
 
       if (result.ok) {
         await sessionRepository.saveSession(result.data);
-        setSession(result.data);
+        setSessionState({ value: result.data });
       } else {
-        setSessionState(result.error);
+        setSessionState({ error: result.error });
       }
 
-      setSessionState(false);
+      setSessionState({ isLoading: false });
       return result;
     },
-    [checkIfActiveSession, checkIfLoadingSession, setSession, setSessionState]
+    [checkIfLoadingSession, getSession, setSessionState]
   );
 
   return {

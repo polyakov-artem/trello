@@ -4,13 +4,13 @@ import { UsersList } from '@/widgets/UsersList';
 import { BtnRemoveUser } from '@/widgets/BtnRemoveUser/ui/BtnRemoveUser';
 import { BtnLogin } from '@/widgets/BtnLogin';
 import { useSessionStore } from '@/entities/session';
-import { BtnLogout } from '@/features/auth/ui/BtnLogout';
+import { BtnLogout } from '@/features/auth';
 
 export const UsersPage: FC = () => {
-  const session = useSessionStore.use.session();
+  const session = useSessionStore.use.value();
 
   return (
-    <div className="container mx-auto px-4 py-4 grow flex flex-col">
+    <div className="container mx-auto p-4 grow flex flex-col">
       <div className="max-w-[500px] self-center w-full">
         <FormRegistration className="mb-8" />
         <UsersList

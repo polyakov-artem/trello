@@ -1,5 +1,6 @@
 import { UserPreview, useUsersStore } from '@/entities/user';
 import type { PropsWithClassName } from '@/shared/types/types';
+import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
 import clsx from 'clsx';
 import type { FC, ReactNode } from 'react';
 
@@ -7,10 +8,12 @@ export type UsersListProps = PropsWithClassName & {
   renderActions: (id: string) => ReactNode;
 };
 
+export const EMPTY_USERS_LIST = 'The list of users is empty';
+
 export const UsersList: FC<UsersListProps> = ({ className, renderActions }) => {
-  const users = useUsersStore.use.users();
-  const usersState = useUsersStore.use.usersState();
-  const isLoading = usersState.isLoading;
+  const users = useUsersStore.use.value();
+  const isLoading = useUsersStore.use.isLoading();
+  const error = useUsersStore.use.error();
 
   const listClasses = clsx(className, 'flex flex-col gap-2');
   const itemClasses = clsx('flex items-center justify-between py-2');
@@ -30,8 +33,12 @@ export const UsersList: FC<UsersListProps> = ({ className, renderActions }) => {
     );
   }
 
+  if (error) {
+    return <ErrorWithReloadBtn title={error.message} />;
+  }
+
   if (!users.length) {
-    return null;
+    return <p className="text-gray-500 text-center">{EMPTY_USERS_LIST}</p>;
   }
 
   return (

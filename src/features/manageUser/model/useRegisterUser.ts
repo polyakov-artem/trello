@@ -1,11 +1,11 @@
-import { useUsersStore } from '@/entities/user';
+import { useUserCreationStore, useUsersStore } from '@/entities/user';
 import { userApi, type UserWithoutId } from '@/shared/api/user/userApi';
 import { useCallback } from 'react';
 
 export const useRegisterUser = () => {
-  const addUserToStore = useUsersStore.use.addUser();
-  const setCreationState = useUsersStore.use.setCreationState();
-  const checkIfCreatingUser = useUsersStore.use.checkIfCreatingUser();
+  const setUsersState = useUsersStore.use.setState();
+  const setUserCreationState = useUserCreationStore.use.setState();
+  const checkIfCreatingUser = useUserCreationStore.use.checkIfLoading();
 
   const registerUser = useCallback(
     async (user: UserWithoutId) => {
@@ -13,19 +13,21 @@ export const useRegisterUser = () => {
         return;
       }
 
-      setCreationState(true);
+      setUserCreationState({ isLoading: true, error: undefined });
       const result = await userApi.registerUser(user);
 
       if (result.ok) {
-        addUserToStore(result.data);
+        setUsersState((prevState) => {
+          return { value: [...prevState.value, result.data] };
+        });
       } else {
-        setCreationState(result.error);
+        setUsersState({ error: result.error });
       }
 
-      setCreationState(false);
+      setUserCreationState({ isLoading: false });
       return result;
     },
-    [addUserToStore, checkIfCreatingUser, setCreationState]
+    [setUsersState, checkIfCreatingUser, setUserCreationState]
   );
 
   return { registerUser };

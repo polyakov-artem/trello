@@ -1,5 +1,5 @@
+import type { Session } from '@/shared/api/auth/authApi';
 import localForage from 'localforage';
-import type { Session } from './types';
 
 const SESSIONS_STORAGE_KEY = 'client_trello_session';
 

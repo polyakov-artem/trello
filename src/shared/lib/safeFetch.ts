@@ -33,15 +33,37 @@ export type ServerResponse<T> = {
   error?: string;
 };
 
-export type FetchResult<T> =
-  | {
-      ok: true;
-      data: T;
-    }
-  | {
-      ok: false;
-      error: FetchError;
-    };
+export type ResultWithData<T> = {
+  ok: true;
+  data: T;
+};
+
+export type ResultWithError = {
+  ok: false;
+  error: FetchError;
+};
+
+export type FetchResult<T> = ResultWithData<T> | ResultWithError;
+
+export const isObject = (value: unknown): value is object =>
+  typeof value === 'object' && value !== null;
+
+export const isFetchError = (value: unknown): value is FetchError =>
+  isObject(value) &&
+  'name' in value &&
+  typeof value.name === 'string' &&
+  'message' in value &&
+  typeof value.message === 'string';
+
+export const isResultWithError = (obj: unknown): obj is ResultWithError => {
+  return (
+    isObject(obj) && 'ok' in obj && obj.ok === false && 'error' in obj && isFetchError(obj.error)
+  );
+};
+
+export const isResultWithData = <T>(obj: unknown): obj is ResultWithData<T> => {
+  return isObject(obj) && 'ok' in obj && obj.ok === true && 'data' in obj;
+};
 
 export function isNoContent(response: Response) {
   if (response.status === 204 || response.status === 205) return true;

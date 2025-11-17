@@ -1,7 +1,9 @@
 import { useSessionStore } from '@/entities/session';
-import { useUsersStore } from '@/entities/user';
+
+import { useUserDeletionStore, useUsersStore } from '@/entities/user';
 import { userApi } from '@/shared/api/user/userApi';
 import { useConfirmation } from '@/shared/ui/Confirmation/useConfirmation';
+import { useCallback } from 'react';
 
 export const TITLE = 'Удаление пользователя';
 export const TEXT = 'Вы действительно хотите удалить пользователя?';
@@ -14,39 +16,55 @@ export type LogOut = () => Promise<
 >;
 
 export const useRemoveUser = () => {
-  const removeUserFromStore = useUsersStore.use.removeUser();
-  const addToDeletionQueue = useUsersStore.use.addToDeletionQueue();
-  const removeFromDeletionQueue = useUsersStore.use.removeFromDeletionQueue();
-  const checkIfRemovingUserWithId = useUsersStore.use.checkIfRemovingUserWithId();
-  const checkIfLoadingSession = useSessionStore.use.checkIfLoadingSession();
+  const setUsers = useUsersStore.use.setState();
+
+  const checkIfRemovingUser = useUserDeletionStore.use.checkIfLoading();
+  const setUserRemovingState = useUserDeletionStore.use.setState();
+
+  const checkIfLoadingSession = useSessionStore.use.checkIfLoading();
+  const getSession = useSessionStore.use.getValue();
   const { getConfirmation } = useConfirmation();
 
-  const removeUser = async (id: string, logout: LogOut) => {
-    if (checkIfRemovingUserWithId(id) || checkIfLoadingSession()) {
-      return;
-    }
+  const removeUser = useCallback(
+    async (userId: string, logout: LogOut) => {
+      const sessionId = getSession()?.sessionId || '';
 
-    const confirmed = await getConfirmation({
-      title: TITLE,
-      body: TEXT,
-    });
+      if (checkIfRemovingUser() || checkIfLoadingSession()) {
+        return;
+      }
 
-    if (!confirmed) {
-      return;
-    }
+      const confirmed = await getConfirmation({
+        title: TITLE,
+        body: TEXT,
+      });
 
-    addToDeletionQueue(id);
-    const sessionId = useSessionStore.getState().getSessionId();
-    const result = await userApi.removeUser(id, sessionId || '');
+      if (!confirmed) {
+        return;
+      }
 
-    if (result.ok) {
-      await logout();
-      removeUserFromStore(id);
-    }
+      setUserRemovingState({ isLoading: true, error: undefined });
 
-    removeFromDeletionQueue(id);
-    return result;
-  };
+      const result = await userApi.removeUser(userId, sessionId);
+
+      if (result.ok) {
+        await logout();
+        setUsers((prevState) => {
+          return { value: prevState.value.filter((user) => user.id !== userId) };
+        });
+      }
+
+      setUserRemovingState({ isLoading: false });
+      return result;
+    },
+    [
+      checkIfRemovingUser,
+      checkIfLoadingSession,
+      getSession,
+      getConfirmation,
+      setUsers,
+      setUserRemovingState,
+    ]
+  );
 
   return { removeUser };
 };

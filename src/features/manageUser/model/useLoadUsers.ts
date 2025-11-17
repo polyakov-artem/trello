@@ -3,27 +3,26 @@ import { userApi } from '@/shared/api/user/userApi';
 import { useCallback } from 'react';
 
 export const useLoadUsers = () => {
-  const setUsers = useUsersStore.use.setUsers();
-  const setUsersState = useUsersStore.use.setUsersState();
-  const checkIfLoadingUsers = useUsersStore.use.checkIfLoadingUsers();
+  const setUsersState = useUsersStore.use.setState();
+  const checkIfLoadingUsers = useUsersStore.use.checkIfLoading();
 
   const loadUsers = useCallback(async () => {
     if (checkIfLoadingUsers()) {
       return;
     }
-    setUsersState(true);
+    setUsersState({ isLoading: true, error: undefined });
 
     const result = await userApi.getUsers();
 
     if (result.ok) {
-      setUsers(result.data);
-      setUsersState(false);
+      setUsersState({ value: result.data });
     } else {
-      setUsersState(result.error);
+      setUsersState({ error: result.error });
     }
 
+    setUsersState({ isLoading: false });
     return result;
-  }, [checkIfLoadingUsers, setUsers, setUsersState]);
+  }, [checkIfLoadingUsers, setUsersState]);
 
   return { loadUsers };
 };
