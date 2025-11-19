@@ -7,22 +7,26 @@ import { getAvatarURL } from '../getAvatarURL';
 
 export type UserSelectProps = {
   users: User[];
-  isLoading: boolean;
+  isLoading?: boolean;
+  isDisabled?: boolean;
   onChange: (name: string, values: string[]) => void;
   name: string;
   id?: string;
+  value: string[];
 } & PropsWithClassName;
 
-export const MSG_LOADING = 'Loading...';
+export const MSG_LOADING = 'Loading, please wait...';
 export const MSG_PLACEHOLDER = 'Select a person';
 
 export const UserSelect: FC<UserSelectProps> = ({
   className,
   users,
   isLoading,
+  isDisabled,
   onChange,
   id,
   name,
+  value,
 }) => {
   const options = useMemo(
     () => users.map(({ id, name, avatarId }) => ({ value: id, label: name, avatarId })),
@@ -40,6 +44,9 @@ export const UserSelect: FC<UserSelectProps> = ({
 
   return (
     <Select
+      value={value}
+      disabled={isDisabled}
+      loading={isLoading}
       id={id}
       className={classes}
       mode="multiple"

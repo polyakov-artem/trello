@@ -10,12 +10,15 @@ export type ErrorWithReloadBtnProps = {
   title?: string;
   subtitle?: string;
   inline?: boolean;
+  showReloadBtn?: boolean;
 } & PropsWithClassName;
 
 export const ErrorWithReloadBtn: FC<ErrorWithReloadBtnProps> = ({
   title = '',
   className,
   inline,
+  showReloadBtn = true,
+  subtitle,
 }) => {
   const classes = clsx(className, 'flex justify-center items-center grow gap-2', {
     'flex-col': !inline,
@@ -24,11 +27,13 @@ export const ErrorWithReloadBtn: FC<ErrorWithReloadBtnProps> = ({
   return (
     <div className={classes}>
       <CloseCircleOutlined className="text-4xl" style={{ color: 'red' }} />
-      <h4 className="text-3xl">{title}</h4>
-      <p className="mb-4">{errorAdvices.tryAgain}</p>
-      <Button type="primary" onClick={reloadPage}>
-        Reload page
-      </Button>
+      <h4 className="text-2xl">{title}</h4>
+      <p className="mb-4">{subtitle || errorAdvices.tryAgain}</p>
+      {showReloadBtn && (
+        <Button type="primary" onClick={reloadPage}>
+          Reload page
+        </Button>
+      )}
     </div>
   );
 };

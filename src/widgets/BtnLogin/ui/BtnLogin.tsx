@@ -4,7 +4,7 @@ import { useCallback, useState, type FC } from 'react';
 import { useLoginWithUserId, useLogout } from '@/features/auth';
 import { toast } from 'react-toastify';
 import { useLoadSessionUser } from '@/features/manageUser';
-import { useLoadTasks } from '@/features/manageTasks';
+import { useLoadTasks } from '@/features/task/view';
 
 export type BtnLoginProps = { userId: string } & PropsWithClassName;
 

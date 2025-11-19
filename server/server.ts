@@ -18,11 +18,12 @@ export type Session = {
 export type Task = {
   id: string;
   authorId: string;
-  editorsIds: string[];
   title: string;
   description: string;
   completed: boolean;
 };
+
+export type TaskDraft = Partial<Omit<Task, 'id' | 'authorId'>>;
 
 const app = express();
 app.use(cors());
@@ -268,9 +269,7 @@ app.get('/tasks', async (req: Request, res: Response) => {
 
   const userId = session.userId;
 
-  const tasks = (await loadTasks()).filter(
-    (t) => t.editorsIds.includes(userId) || t.authorId === userId
-  );
+  const tasks = (await loadTasks()).filter((t) => t.authorId === userId);
   res.json({ data: tasks });
 });
 
@@ -278,12 +277,7 @@ app.post('/tasks', async (req: Request, res: Response) => {
   await delay();
   const { sessionId } = req.query as { sessionId: string };
 
-  const {
-    editorsIds = [],
-    title = '',
-    description = '',
-    completed = false,
-  } = req.body as Partial<Task>;
+  const { title = '', description = '', completed = false } = req.body as TaskDraft;
 
   const sessions = await loadSessions();
   const session = sessions[sessionId];
@@ -298,7 +292,6 @@ app.post('/tasks', async (req: Request, res: Response) => {
   const newTask: Task = {
     id: nanoid(),
     authorId: userId,
-    editorsIds,
     title,
     description,
     completed,
@@ -312,12 +305,7 @@ app.put('/tasks/:id', async (req: Request, res: Response) => {
   await delay();
   const { sessionId } = req.query as { sessionId: string };
 
-  const {
-    editorsIds = [],
-    title = '',
-    description = '',
-    completed = false,
-  } = req.body as Partial<Task>;
+  const { title, description, completed } = req.body as TaskDraft;
 
   const taskId = req.params.id;
   const sessions = await loadSessions();
@@ -335,19 +323,23 @@ app.put('/tasks/:id', async (req: Request, res: Response) => {
     return res.status(404).json({ error: ERROR_TASK_NOT_FOUND });
   }
 
-  const userId = session.userId;
-
-  if (task.authorId !== userId && !task.editorsIds.includes(userId)) {
+  if (task.authorId !== session.userId) {
     return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
   }
 
   const updatedTask: Task = {
     ...task,
-    editorsIds,
-    title,
-    description,
-    completed,
   };
+
+  if (title !== undefined) {
+    updatedTask.title = title;
+  }
+  if (description !== undefined) {
+    updatedTask.description = description;
+  }
+  if (completed !== undefined) {
+    updatedTask.completed = completed;
+  }
 
   await saveTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
   res.json({ data: updatedTask });
@@ -373,9 +365,7 @@ app.delete('/tasks/:id', async (req: Request, res: Response) => {
     return res.status(404).json({ error: ERROR_TASK_NOT_FOUND });
   }
 
-  const userId = session.userId;
-
-  if (task.authorId !== userId && !task.editorsIds.includes(userId)) {
+  if (task.authorId !== session.userId) {
     return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
   }
 

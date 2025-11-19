@@ -1,6 +1,6 @@
 import { useLoginWithSavedSession } from '@/features/auth';
 import { useLoadUsers, useLoadSessionUser } from '@/features/manageUser';
-import { useLoadTasks } from '@/features/manageTasks';
+import { useLoadTasks } from '@/features/task/view';
 
 import { useEffect, type FC, type PropsWithChildren } from 'react';
 

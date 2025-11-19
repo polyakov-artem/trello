@@ -5,11 +5,9 @@ import type { PropsWithClassName } from '@/shared/types/types';
 import { Logo } from '@/shared/ui/Logo/Logo';
 import { NavLinks } from '@/shared/ui/NavLinks/NavLinks';
 import clsx from 'clsx';
-import type { FC, ReactNode } from 'react';
+import type { FC } from 'react';
 
-export type HeaderProps = PropsWithClassName & {
-  userPreview?: ReactNode;
-};
+export type HeaderProps = PropsWithClassName;
 
 const LINKS = [
   [ROUTER_PATHS.USERS, 'Users'],

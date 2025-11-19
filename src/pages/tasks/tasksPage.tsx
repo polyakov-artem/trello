@@ -2,8 +2,11 @@ import { useSessionStore } from '@/entities/session';
 import { ScreenLoader } from '@/shared/ui/ScreenLoader/ScreenLoader';
 import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
 import { type FC } from 'react';
-import { BtnCreateTask } from '@/widgets/BtnCreateTask/BtnCreateTask';
-import { TasksList } from '@/widgets/TasksList';
+import { BtnCreateTask } from '@/features/task/create';
+import { BtnUpdateTask } from '@/features/task/update';
+import { TasksTable } from '@/features/task/view';
+import { TaskUpdateModalWindow } from '@/widgets/TaskUpdateModalWindow';
+import { BtnDeleteTask } from '@/features/task/delete';
 
 const MSG_NO_PERMISSION = "Please log in. You don't have permission to create tasks";
 const TITLE = 'Tasks';
@@ -51,12 +54,21 @@ export const TasksPage: FC = () => {
   }
 
   return (
-    <Container>
-      <Content>
-        <Title />
-        <BtnCreateTask className={'m-auto'} />
-        <TasksList />
-      </Content>
-    </Container>
+    <TaskUpdateModalWindow>
+      <Container>
+        <Content>
+          <Title />
+          <BtnCreateTask className={'ml-auto'} />
+          <TasksTable
+            renderActions={(taskId) => (
+              <div className="inline-flex flex-wrap gap-2 items-center">
+                <BtnDeleteTask taskId={taskId} />
+                <BtnUpdateTask taskId={taskId} />
+              </div>
+            )}
+          />
+        </Content>
+      </Container>
+    </TaskUpdateModalWindow>
   );
 };

@@ -13,6 +13,7 @@ interface ModalProps {
   title?: string;
   body?: React.ReactNode;
   buttons?: React.ReactNode;
+  onCloseComplete?: () => void;
 }
 
 const lockBody = () => {
@@ -50,7 +51,7 @@ const modalOpenState = {
 
 const modalsContainer = document.getElementById('modals')!;
 
-const Modal: FC<ModalProps> = ({ closeModal, isOpen, title, body, buttons }) => {
+const Modal: FC<ModalProps> = ({ closeModal, isOpen, title, body, buttons, onCloseComplete }) => {
   const [mainTl] = useState(gsap.timeline());
   const [hasDom, setHasDom] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -86,6 +87,7 @@ const Modal: FC<ModalProps> = ({ closeModal, isOpen, title, body, buttons }) => 
         onComplete: () => {
           setHasDom(false);
           unlockBody();
+          onCloseComplete?.();
         },
       });
 
@@ -139,9 +141,8 @@ const Modal: FC<ModalProps> = ({ closeModal, isOpen, title, body, buttons }) => 
                 icon={<CloseOutlined />}
               />
             </div>
-
             <div className="p-4 border-t border-gray-200">{body}</div>
-            <div className="p-4 flex items-center gap-4 justify-center">{buttons}</div>
+            {buttons && <div className="p-4 flex items-center gap-4 justify-center">{buttons}</div>}
           </div>
         </div>,
         modalsContainer

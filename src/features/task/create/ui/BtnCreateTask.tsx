@@ -2,7 +2,7 @@ import type { PropsWithClassName } from '@/shared/types/types';
 import { useModal } from '@/shared/ui/Modal/useModal';
 import { Button } from 'antd';
 import { type FC } from 'react';
-import { ModalCreateTask } from '@/features/manageTasks';
+import { ModalCreateTask } from '@/features/task/create';
 
 export type BtnCreateTaskProps = PropsWithClassName;
 
