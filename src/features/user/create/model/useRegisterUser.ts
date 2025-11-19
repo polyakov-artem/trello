@@ -1,5 +1,6 @@
 import { useUserCreationStore, useUsersStore } from '@/entities/user';
-import { userApi, type UserWithoutId } from '@/shared/api/user/userApi';
+import { userApi } from '@/shared/api/user/userApi';
+import type { UserWithoutId } from '@/entities/user';
 import { useCallback } from 'react';
 
 export const useRegisterUser = () => {

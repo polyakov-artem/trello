@@ -179,6 +179,11 @@ app.delete('/users/:id', async (req: Request, res: Response) => {
   );
   await saveSessions(updatedSessions);
 
+  // Clean up orphaned tasks
+  const tasks = await loadTasks();
+  const updatedTasks = tasks.filter((t) => t.authorId !== userId);
+  await saveTasks(updatedTasks);
+
   res.json({ data: { success: true } });
 });
 

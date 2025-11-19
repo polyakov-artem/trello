@@ -5,7 +5,7 @@ import type { PropsWithClassName } from '@/shared/types/types';
 import * as Yup from 'yup';
 import { AvatarSelector, useUserCreationStore } from '@/entities/user';
 import clsx from 'clsx';
-import { useRegisterUser } from '@/features/manageUser';
+import { useRegisterUser } from '../model/useRegisterUser';
 
 const signupSchema = Yup.object().shape({
   name: Yup.string()

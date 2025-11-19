@@ -3,7 +3,7 @@ import { Table, type GetProp, type TableProps } from 'antd';
 import { useTasksStore } from '@/entities/task';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
-import type { Task } from '@/shared/api/task/taskApi';
+import type { Task } from '@/entities/task';
 
 export type TasksTableProps = PropsWithClassName & {
   renderActions?: (taskId: string) => ReactNode;

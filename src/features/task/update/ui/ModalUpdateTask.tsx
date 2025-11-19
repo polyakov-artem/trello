@@ -1,11 +1,11 @@
 import { type FC } from 'react';
-import Modal from '../../../../shared/ui/Modal/Modal';
+import Modal from '@/shared/ui/Modal/Modal';
 import { useModalUpdateTask } from '@/features/task/update';
 import Input from 'antd/es/input/Input';
 import TextArea from 'antd/es/input/TextArea';
 import { Button, Checkbox } from 'antd';
 import { ScreenLoader } from '@/shared/ui/ScreenLoader/ScreenLoader';
-import { ErrorWithReloadBtn } from '../../../../shared/ui/ErrorWithReload/ErrorWithReloadBtn';
+import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
 
 export type ModalUpdateTaskProps = {
   closeModal: () => void;

@@ -1,7 +1,7 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Button } from 'antd';
 import { useCallback, useState, type FC } from 'react';
-import { useLogout } from '@/features/auth';
+import { useLogout } from '@/features/auth/logout';
 
 export type BtnLogoutProps = PropsWithClassName;
 

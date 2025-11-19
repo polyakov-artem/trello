@@ -2,7 +2,7 @@ import { useTasksStore } from '@/entities/task';
 import { taskApi } from '@/shared/api/task/taskApi';
 import { useCallback } from 'react';
 import type { FetchResult } from '@/shared/lib/safeFetch';
-import type { Task } from '@/shared/api/task/taskApi';
+import type { Task } from '@/entities/task';
 import { useSessionStore } from '@/entities/session';
 
 export const useLoadTasks = () => {

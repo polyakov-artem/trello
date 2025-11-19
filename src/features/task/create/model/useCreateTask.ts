@@ -1,6 +1,7 @@
 import { useSessionStore } from '@/entities/session';
 import { useTaskCreationStore, useTasksStore } from '@/entities/task';
-import { taskApi, type TaskDraft } from '@/shared/api/task/taskApi';
+import { taskApi } from '@/shared/api/task/taskApi';
+import type { TaskDraft } from '@/entities/task';
 import { useCallback } from 'react';
 
 export const useCreateTask = () => {

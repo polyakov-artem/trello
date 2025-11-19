@@ -4,7 +4,7 @@ import { useUpdateTask } from '@/features/task/update';
 import { useSessionStore } from '@/entities/session';
 import { type CheckboxChangeEvent } from 'antd';
 import { errorNames, type FetchError } from '@/shared/lib/safeFetch';
-import type { Task } from '@/shared/api/task/taskApi';
+import type { Task } from '@/entities/task';
 
 export type UseModalUpdateTaskProps = {
   closeModal: () => void;

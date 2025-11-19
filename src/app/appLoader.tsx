@@ -1,5 +1,5 @@
-import { useLoginWithSavedSession } from '@/features/auth';
-import { useLoadUsers, useLoadSessionUser } from '@/features/manageUser';
+import { useLoginWithSavedSession } from '@/features/auth/login';
+import { useLoadUsers, useLoadSessionUser } from '@/features/user/view';
 import { useLoadTasks } from '@/features/task/view';
 
 import { useEffect, type FC, type PropsWithChildren } from 'react';

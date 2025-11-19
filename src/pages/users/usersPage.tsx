@@ -1,10 +1,10 @@
 import { type FC } from 'react';
-import { FormRegistration } from '@/features/manageUser';
+import { FormRegistration } from '@/features/user/create';
 import { UsersList } from '@/widgets/UsersList';
-import { BtnRemoveUser } from '@/widgets/BtnRemoveUser/ui/BtnRemoveUser';
+import { BtnRemoveUser } from '@/widgets/BtnRemoveUser';
 import { BtnLogin } from '@/widgets/BtnLogin';
 import { useSessionStore } from '@/entities/session';
-import { BtnLogout } from '@/features/auth';
+import { BtnLogout } from '@/features/auth/logout';
 
 export const UsersPage: FC = () => {
   const session = useSessionStore.use.value();
