@@ -1,19 +1,12 @@
 import { useSessionStore } from '@/entities/session';
-
 import { useUserDeletionStore, useUsersStore } from '@/entities/user';
 import { userApi } from '@/shared/api/user/userApi';
-import { useConfirmation } from '@/shared/ui/Confirmation/useConfirmation';
+import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
 import { useCallback } from 'react';
+import { useRemoveUserDepsContext } from './RemoveUserDepsContext';
 
 export const TITLE = 'Удаление пользователя';
 export const TEXT = 'Вы действительно хотите удалить пользователя?';
-
-export type LogOut = () => Promise<
-  | {
-      success: boolean;
-    }
-  | undefined
->;
 
 export const useRemoveUser = () => {
   const setUsers = useUsersStore.use.setState();
@@ -23,10 +16,11 @@ export const useRemoveUser = () => {
 
   const checkIfLoadingSession = useSessionStore.use.checkIfLoading();
   const getSession = useSessionStore.use.getValue();
-  const { getConfirmation } = useConfirmation();
+  const { getConfirmation } = useConfirmationContext();
+  const logout = useRemoveUserDepsContext();
 
   const removeUser = useCallback(
-    async (userId: string, logout: LogOut) => {
+    async (userId: string) => {
       const sessionId = getSession()?.sessionId || '';
 
       if (checkIfRemovingUser() || checkIfLoadingSession()) {
@@ -57,14 +51,15 @@ export const useRemoveUser = () => {
       return result;
     },
     [
+      getSession,
       checkIfRemovingUser,
       checkIfLoadingSession,
-      getSession,
       getConfirmation,
-      setUsers,
       setUserRemovingState,
+      logout,
+      setUsers,
     ]
   );
 
-  return { removeUser };
+  return removeUser;
 };

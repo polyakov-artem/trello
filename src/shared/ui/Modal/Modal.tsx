@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { getScrollbarWidth } from '@/shared/lib/getScrollbarWidth';
+import { getScrollbarWidth } from '@/shared/lib/sizeUtils';
 import { Button } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { createPortal } from 'react-dom';

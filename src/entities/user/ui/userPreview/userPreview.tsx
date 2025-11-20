@@ -1,7 +1,7 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import clsx from 'clsx';
 import type { FC } from 'react';
-import { getAvatarURL } from '../../index';
+import { getAvatarURL } from '../getAvatarURL';
 
 export type UserPreviewProps = PropsWithClassName & {
   name?: string;

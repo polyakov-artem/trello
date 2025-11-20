@@ -1,14 +1,15 @@
 import { useLoginWithSavedSession } from '@/features/auth/login';
-import { useLoadUsers, useLoadSessionUser } from '@/features/user/view';
-import { useLoadTasks } from '@/features/task/view';
-
+import { useLoadUsers, useLoadSessionUser } from '@/features/user/load';
 import { useEffect, type FC, type PropsWithChildren } from 'react';
+import { useLoadTasks } from '@/features/task/load';
+import { useLoadBoards } from '@/features/board/load';
 
 export const AppLoader: FC<PropsWithChildren> = ({ children }) => {
-  const { loadUsers } = useLoadUsers();
-  const { loginWithSavedSession } = useLoginWithSavedSession();
-  const { loadSessionUser } = useLoadSessionUser();
-  const { loadTasks } = useLoadTasks();
+  const loadUsers = useLoadUsers();
+  const loginWithSavedSession = useLoginWithSavedSession();
+  const loadSessionUser = useLoadSessionUser();
+  const loadTasks = useLoadTasks();
+  const loadBoards = useLoadBoards();
 
   useEffect(() => {
     void loadUsers();
@@ -16,9 +17,10 @@ export const AppLoader: FC<PropsWithChildren> = ({ children }) => {
       if (result?.ok) {
         void loadSessionUser();
         void loadTasks();
+        void loadBoards();
       }
     });
-  }, [loadSessionUser, loadTasks, loadUsers, loginWithSavedSession]);
+  }, [loadBoards, loadSessionUser, loadTasks, loadUsers, loginWithSavedSession]);
 
   return <>{children}</>;
 };

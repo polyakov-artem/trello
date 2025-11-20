@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTaskCreationStore } from '@/entities/task';
-import { useCreateTask } from '@/features/task/create';
+import { useCreateTask } from './useCreateTask';
 import { useSessionStore } from '@/entities/session';
 import { type CheckboxChangeEvent } from 'antd';
 
@@ -18,7 +18,7 @@ export const useModalCreateTask = ({ closeModal }: UseModalCreateTaskProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [formValues, setFromValues] = useState(initialFormValues);
   const [formError, setFormError] = useState('');
-  const { createTask } = useCreateTask();
+  const createTask = useCreateTask();
 
   const checkIfCreatingTask = useTaskCreationStore.use.checkIfLoading();
   const isCreatingTask = useTaskCreationStore.use.isLoading();
@@ -87,21 +87,39 @@ export const useModalCreateTask = ({ closeModal }: UseModalCreateTaskProps) => {
     handleSubmit();
   }, [handleSubmit]);
 
-  return {
-    formRef,
-    isCreatingTask,
-    session,
-    formValues,
-    formError,
-    isCreateBtnDisabled,
-    isCancelBtnDisabled,
-    isLoadingDeps,
-    depsError,
-    handleFieldChange,
-    handleCheckboxChange,
-    handleInputChange,
-    handleCloseModal,
-    handleSubmit,
-    handleCreateBtnClick,
-  };
+  return useMemo(
+    () => ({
+      formRef,
+      isCreatingTask,
+      session,
+      formValues,
+      formError,
+      isCreateBtnDisabled,
+      isCancelBtnDisabled,
+      isLoadingDeps,
+      depsError,
+      handleFieldChange,
+      handleCheckboxChange,
+      handleInputChange,
+      handleCloseModal,
+      handleSubmit,
+      handleCreateBtnClick,
+    }),
+    [
+      depsError,
+      formError,
+      formValues,
+      handleCheckboxChange,
+      handleCloseModal,
+      handleCreateBtnClick,
+      handleFieldChange,
+      handleInputChange,
+      handleSubmit,
+      isCancelBtnDisabled,
+      isCreateBtnDisabled,
+      isCreatingTask,
+      isLoadingDeps,
+      session,
+    ]
+  );
 };

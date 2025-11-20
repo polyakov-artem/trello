@@ -1,5 +1,5 @@
 import { errorAdvices } from '@/shared/constants/errorMsgs';
-import { reloadPage } from '@/shared/lib/reloadPage';
+import { reloadPage } from '@/shared/lib/locationUtils';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { Button } from 'antd';

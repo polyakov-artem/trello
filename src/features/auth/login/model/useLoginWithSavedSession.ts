@@ -34,7 +34,5 @@ export const useLoginWithSavedSession = () => {
     return result;
   }, [checkIfLoadingSession, getSession, setSessionState]);
 
-  return {
-    loginWithSavedSession,
-  };
+  return loginWithSavedSession;
 };

@@ -1,4 +1,4 @@
-import type { User } from '@/entities/user';
+import type { User } from '@/shared/api/user/userApi';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Select } from 'antd';
 import clsx from 'clsx';

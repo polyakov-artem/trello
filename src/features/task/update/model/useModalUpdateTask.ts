@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTaskUpdateStore, useTasksStore } from '@/entities/task';
-import { useUpdateTask } from '@/features/task/update';
+import { useUpdateTask } from './useUpdateTask';
 import { useSessionStore } from '@/entities/session';
 import { type CheckboxChangeEvent } from 'antd';
 import { errorNames, type FetchError } from '@/shared/lib/safeFetch';
-import type { Task } from '@/entities/task';
+import type { Task } from '@/shared/api/task/taskApi';
 
 export type UseModalUpdateTaskProps = {
   closeModal: () => void;
@@ -24,7 +24,7 @@ export const useModalUpdateTask = ({ closeModal, isOpen, taskId }: UseModalUpdat
   const formRef = useRef<HTMLFormElement>(null);
   const [formValues, setFromValues] = useState(defaultFormState);
   const [formError, setFormError] = useState('');
-  const { updateTask } = useUpdateTask();
+  const updateTask = useUpdateTask();
 
   const checkIfUpdatingTask = useTaskUpdateStore.use.checkIfLoading();
   const isUpdatingTask = useTaskUpdateStore.use.isLoading();
@@ -128,21 +128,39 @@ export const useModalUpdateTask = ({ closeModal, isOpen, taskId }: UseModalUpdat
     handleSubmit();
   }, [handleSubmit]);
 
-  return {
-    formRef,
-    isUpdatingTask,
-    session,
-    formValues,
-    formError,
-    isUpdateBtnDisabled,
-    isCancelBtnDisabled,
-    isLoadingDeps,
-    depsError,
-    handleFieldChange,
-    handleCheckboxChange,
-    handleInputChange,
-    handleCloseModal,
-    handleSubmit,
-    handleUpdateBtnClick,
-  };
+  return useMemo(
+    () => ({
+      formRef,
+      isUpdatingTask,
+      session,
+      formValues,
+      formError,
+      isUpdateBtnDisabled,
+      isCancelBtnDisabled,
+      isLoadingDeps,
+      depsError,
+      handleFieldChange,
+      handleCheckboxChange,
+      handleInputChange,
+      handleCloseModal,
+      handleSubmit,
+      handleUpdateBtnClick,
+    }),
+    [
+      depsError,
+      formError,
+      formValues,
+      handleCheckboxChange,
+      handleCloseModal,
+      handleFieldChange,
+      handleInputChange,
+      handleSubmit,
+      handleUpdateBtnClick,
+      isCancelBtnDisabled,
+      isLoadingDeps,
+      isUpdateBtnDisabled,
+      isUpdatingTask,
+      session,
+    ]
+  );
 };

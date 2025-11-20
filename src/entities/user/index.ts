@@ -8,4 +8,3 @@ export {
   useUserDeletionStore,
   useSessionUserStore,
 } from './model/usersStore';
-export type { User, UserWithoutId } from '@/shared/api/user/userApi';

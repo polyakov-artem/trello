@@ -1,5 +1,5 @@
 import type { User } from '@/shared/api/user/userApi';
-import { createCustomStore } from '@/shared/lib/storeUtils';
+import { createCustomStore } from '@/shared/lib/zustandCustomStore';
 
 export const useUsersStore = createCustomStore<User[]>([]);
 export const useUserCreationStore = createCustomStore(undefined);

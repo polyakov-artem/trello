@@ -1,17 +1,19 @@
 import { toast } from 'react-toastify';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useLoginWithUserId } from '@/features/auth/login';
 import { useLogout } from '@/features/auth/logout';
-import { useLoadSessionUser } from '@/features/user/view';
-import { useLoadTasks } from '@/features/task/view';
+import { useLoadSessionUser } from '@/features/user/load';
+import { useLoadTasks } from '@/features/task/load';
+import { useLoadBoards } from '@/features/board/load';
 
 export const useBtnLogin = (userId: string) => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { logout } = useLogout();
-  const { loginWithUserId } = useLoginWithUserId();
-  const { loadSessionUser } = useLoadSessionUser();
-  const { loadTasks } = useLoadTasks();
+  const logout = useLogout();
+  const loginWithUserId = useLoginWithUserId();
+  const loadSessionUser = useLoadSessionUser();
+  const loadTasks = useLoadTasks();
+  const loadBoards = useLoadBoards();
 
   const handleClick = useCallback(() => {
     setIsLoading(true);
@@ -23,6 +25,7 @@ export const useBtnLogin = (userId: string) => {
           if (result.ok) {
             void loadSessionUser();
             void loadTasks();
+            void loadBoards();
           } else {
             toast.error(result.error.message);
           }
@@ -30,7 +33,7 @@ export const useBtnLogin = (userId: string) => {
 
         setIsLoading(false);
       });
-  }, [loadSessionUser, loadTasks, loginWithUserId, logout, userId]);
+  }, [loadBoards, loadSessionUser, loadTasks, loginWithUserId, logout, userId]);
 
-  return { isLoading, handleClick };
+  return useMemo(() => ({ isLoading, handleClick }), [isLoading, handleClick]);
 };

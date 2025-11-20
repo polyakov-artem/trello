@@ -1,7 +1,7 @@
 import { useSessionStore } from '@/entities/session';
 import { useTaskCreationStore, useTasksStore } from '@/entities/task';
 import { taskApi } from '@/shared/api/task/taskApi';
-import type { TaskDraft } from '@/entities/task';
+import type { TaskDraft } from '@/shared/api/task/taskApi';
 import { useCallback } from 'react';
 
 export const useCreateTask = () => {
@@ -53,7 +53,5 @@ export const useCreateTask = () => {
     ]
   );
 
-  return {
-    createTask,
-  };
+  return createTask;
 };

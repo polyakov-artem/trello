@@ -1,15 +1,15 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDeleteTask } from './useDeleteTask';
 import { toast } from 'react-toastify';
-import { useConfirmation } from '@/shared/ui/Confirmation/useConfirmation';
+import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
 
 export const TITLE = 'Удаление задачи';
 export const TEXT = 'Вы действительно хотите удалить задачу?';
 
 export const useBtnDeleteTask = (taskId: string) => {
-  const { deleteTask } = useDeleteTask();
+  const deleteTask = useDeleteTask();
   const [isDeleting, setIsDeleting] = useState(false);
-  const { getConfirmation } = useConfirmation();
+  const { getConfirmation } = useConfirmationContext();
 
   const handleClick = useCallback(() => {
     void getConfirmation({
@@ -33,5 +33,5 @@ export const useBtnDeleteTask = (taskId: string) => {
       });
   }, [deleteTask, taskId, getConfirmation]);
 
-  return { isDeleting, handleClick };
+  return useMemo(() => ({ isDeleting, handleClick }), [isDeleting, handleClick]);
 };

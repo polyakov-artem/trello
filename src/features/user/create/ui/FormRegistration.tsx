@@ -16,7 +16,7 @@ const signupSchema = Yup.object().shape({
 });
 
 export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
-  const { registerUser } = useRegisterUser();
+  const registerUser = useRegisterUser();
   const checkIfCreatingUser = useUserCreationStore.use.checkIfLoading();
   const isCreatingUser = useUserCreationStore.use.isLoading();
 

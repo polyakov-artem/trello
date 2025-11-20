@@ -1,9 +1,10 @@
 import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
 import { ROUTER_PATHS } from '@/shared/constants/routes';
 import { RootLayout } from '@/shared/ui/layouts/RootLayout/RootLayout';
-import { UsersPage } from '@/pages/users/usersPage';
+import { UsersPage } from '@/pages/users';
 import { Header } from '@/widgets/Header';
-import { TasksPage } from '@/pages/tasks/tasksPage';
+import { TasksPage } from '@/pages/tasks';
+import { BoardsPage } from '@/pages/boards';
 
 const router = createBrowserRouter([
   {
@@ -19,12 +20,16 @@ const router = createBrowserRouter([
         element: <UsersPage />,
       },
       {
-        path: ROUTER_PATHS.BOARDS,
-        element: 'Boards page',
-      },
-      {
         path: ROUTER_PATHS.TASKS,
         element: <TasksPage />,
+      },
+      {
+        path: ROUTER_PATHS.BOARDS,
+        element: <BoardsPage />,
+      },
+      {
+        path: ROUTER_PATHS.BOARD,
+        element: 'Board page',
       },
     ],
   },

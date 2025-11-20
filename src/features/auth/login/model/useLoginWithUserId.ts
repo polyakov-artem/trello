@@ -30,7 +30,5 @@ export const useLoginWithUserId = () => {
     [checkIfLoadingSession, getSession, setSessionState]
   );
 
-  return {
-    loginWithUserId,
-  };
+  return loginWithUserId;
 };

@@ -54,7 +54,5 @@ export const useDeleteTask = () => {
     ]
   );
 
-  return {
-    deleteTask,
-  };
+  return deleteTask;
 };

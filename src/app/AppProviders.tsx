@@ -1,6 +1,6 @@
-import { ConfirmationProvider } from '@/shared/ui/Confirmation/ConfirmationProvider';
+import { Confirmation } from '@/shared/ui/Confirmation/Confirmation';
 import type { FC, PropsWithChildren } from 'react';
 
 export const AppProviders: FC<PropsWithChildren> = ({ children }) => {
-  return <ConfirmationProvider>{children}</ConfirmationProvider>;
+  return <Confirmation>{children}</Confirmation>;
 };

@@ -1,4 +1,4 @@
-import { createCustomStore } from '@/shared/lib/storeUtils';
+import { createCustomStore } from '@/shared/lib/zustandCustomStore';
 import type { Task } from '@/shared/api/task/taskApi';
 
 export const useTasksStore = createCustomStore<Task[]>([]);

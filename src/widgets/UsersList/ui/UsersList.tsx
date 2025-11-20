@@ -16,7 +16,7 @@ export const UsersList: FC<UsersListProps> = ({ className, renderActions }) => {
   const error = useUsersStore.use.error();
 
   const listClasses = clsx(className, 'flex flex-col gap-2');
-  const itemClasses = clsx('flex items-center justify-between py-2');
+  const itemClasses = 'flex items-center justify-between py-2';
   const btnsWrapClasses = clsx('flex gap-2.5 items-center', { 'animate-pulse': isLoading });
 
   if (isLoading) {

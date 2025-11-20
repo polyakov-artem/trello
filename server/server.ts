@@ -25,6 +25,14 @@ export type Task = {
 
 export type TaskDraft = Partial<Omit<Task, 'id' | 'authorId'>>;
 
+export type Board = {
+  id: string;
+  authorId: string;
+  title: string;
+};
+
+export type BoardDraft = Partial<Omit<Board, 'id' | 'authorId'>>;
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -33,6 +41,7 @@ const DATA_DIR = './server/data';
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+const BOARDS_FILE = path.join(DATA_DIR, 'boards.json');
 
 const ERROR_UNAUTHORIZED = 'Unauthorized. Please log in again';
 const ERROR_USER_NOT_FOUND = 'User not found';
@@ -42,6 +51,7 @@ const ERROR_TASK_NOT_FOUND = 'Task not found';
 const ERROR_MISSING_NAME = 'Name is required';
 const ERROR_MISSING_AVATAR = 'Avatar is required';
 const ERROR_VALIDATION_FAILED = 'Validation failed';
+const ERROR_BOARD_NOT_FOUND = 'Task not found';
 
 await fs.mkdir(DATA_DIR, { recursive: true });
 
@@ -82,6 +92,14 @@ async function loadTasks(): Promise<Task[]> {
 
 async function saveTasks(tasks: Task[]): Promise<void> {
   await writeJSON(TASKS_FILE, tasks);
+}
+
+async function loadBoards(): Promise<Board[]> {
+  return await readJSON<Board[]>(BOARDS_FILE, []);
+}
+
+async function saveBoards(boards: Board[]): Promise<void> {
+  await writeJSON(BOARDS_FILE, boards);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,6 +201,11 @@ app.delete('/users/:id', async (req: Request, res: Response) => {
   const tasks = await loadTasks();
   const updatedTasks = tasks.filter((t) => t.authorId !== userId);
   await saveTasks(updatedTasks);
+
+  // Clean up orphaned boards
+  const boards = await loadBoards();
+  const updatedBoards = boards.filter((b) => b.authorId !== userId);
+  await saveBoards(updatedBoards);
 
   res.json({ data: { success: true } });
 });
@@ -375,6 +398,119 @@ app.delete('/tasks/:id', async (req: Request, res: Response) => {
   }
 
   await saveTasks(tasks.filter((t) => t.id !== taskId));
+  res.json({ data: { success: true } });
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                  Boards APIs                                 */
+/* -------------------------------------------------------------------------- */
+
+app.get('/boards', async (req: Request, res: Response) => {
+  await delay();
+  const { sessionId } = req.query as { sessionId: string };
+
+  const sessions = await loadSessions();
+  const session = sessions[sessionId];
+
+  if (!session) {
+    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
+  }
+
+  const userId = session.userId;
+
+  const boards = (await loadBoards()).filter((t) => t.authorId === userId);
+  res.json({ data: boards });
+});
+
+app.post('/boards', async (req: Request, res: Response) => {
+  await delay();
+  const { sessionId } = req.query as { sessionId: string };
+
+  const { title = '' } = req.body as BoardDraft;
+
+  const sessions = await loadSessions();
+  const session = sessions[sessionId];
+
+  if (!session) {
+    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
+  }
+
+  const userId = session.userId;
+  const boards = await loadBoards();
+
+  const newBoard: Board = {
+    id: nanoid(),
+    authorId: userId,
+    title,
+  };
+
+  await saveBoards([...boards, newBoard]);
+  res.json({ data: newBoard });
+});
+
+app.put('/boards/:id', async (req: Request, res: Response) => {
+  await delay();
+  const { sessionId } = req.query as { sessionId: string };
+
+  const { title } = req.body as BoardDraft;
+
+  const boardId = req.params.id;
+  const sessions = await loadSessions();
+  const session = sessions[sessionId];
+
+  if (!session) {
+    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
+  }
+
+  const boards = await loadBoards();
+
+  const board = boards.find((t) => t.id === boardId);
+
+  if (!board) {
+    return res.status(404).json({ error: ERROR_BOARD_NOT_FOUND });
+  }
+
+  if (board.authorId !== session.userId) {
+    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+  }
+
+  const updatedBoard: Board = {
+    ...board,
+  };
+
+  if (title !== undefined) {
+    updatedBoard.title = title;
+  }
+
+  await saveBoards(boards.map((t) => (t.id === boardId ? updatedBoard : t)));
+  res.json({ data: updatedBoard });
+});
+
+app.delete('/boards/:id', async (req: Request, res: Response) => {
+  await delay();
+  const { sessionId } = req.query as { sessionId: string };
+
+  const boardId = req.params.id;
+  const sessions = await loadSessions();
+  const session = sessions[sessionId];
+
+  if (!session) {
+    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
+  }
+
+  const boards = await loadBoards();
+
+  const board = boards.find((t) => t.id === boardId);
+
+  if (!board) {
+    return res.status(404).json({ error: ERROR_BOARD_NOT_FOUND });
+  }
+
+  if (board.authorId !== session.userId) {
+    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+  }
+
+  await saveBoards(boards.filter((t) => t.id !== boardId));
   res.json({ data: { success: true } });
 });
 
