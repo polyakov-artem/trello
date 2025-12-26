@@ -1,1 +1,1 @@
-export * from './RemoveUserDepsProvider';
+export { RemoveUserProvider } from './RemoveUserProvider';

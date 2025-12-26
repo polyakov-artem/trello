@@ -1,54 +1,62 @@
-import { UserPreview, useUsersStore } from '@/entities/user';
+import { UserPreview } from '@/entities/user';
+import type { User } from '@/shared/api/user/userApi';
 import type { PropsWithClassName } from '@/shared/types/types';
-import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
+import { Spinner } from '@/shared/ui/Spinner/Spinner';
 import clsx from 'clsx';
-import type { FC, ReactNode } from 'react';
+import { useMemo, type FC } from 'react';
+import { UserListSkeleton } from './UserListSkeleton';
+import { UsersListError } from './UsersListError';
 
-export type UsersListProps = PropsWithClassName & {
-  renderActions: (id: string) => ReactNode;
-};
+export type UsersListProps = {
+  users?: User[] | undefined;
+  isLoading?: boolean;
+  errorMsg?: string;
+  renderActions?: (userId: string) => React.ReactNode;
+} & PropsWithClassName;
 
 export const EMPTY_USERS_LIST = 'The list of users is empty';
 
-export const UsersList: FC<UsersListProps> = ({ className, renderActions }) => {
-  const users = useUsersStore.use.value();
-  const isLoading = useUsersStore.use.isLoading();
-  const error = useUsersStore.use.error();
-
-  const listClasses = clsx(className, 'flex flex-col gap-2');
+export const UsersList: FC<UsersListProps> = ({
+  users,
+  isLoading,
+  errorMsg,
+  renderActions,
+  className,
+}) => {
+  const classes = useMemo(() => clsx(className, 'flex flex-col gap-2 relative'), [className]);
+  const listClasses = 'flex flex-col gap-2';
   const itemClasses = 'flex items-center justify-between py-2';
-  const btnsWrapClasses = clsx('flex gap-2.5 items-center', { 'animate-pulse': isLoading });
+  const btnsWrapClasses = 'flex gap-2.5 items-center';
 
-  if (isLoading) {
-    return (
-      <ul className={listClasses}>
-        <li className={itemClasses}>
-          <UserPreview isLoading />
-          <div className={btnsWrapClasses}>
-            <div className="w-15 h-8 rounded-sm bg-gray-200" />
-            <div className="w-15 h-8 rounded-sm bg-gray-200" />
-          </div>
-        </li>
-      </ul>
+  const content =
+    !users && isLoading ? (
+      <UserListSkeleton
+        className={listClasses}
+        itemClasses={itemClasses}
+        btnsWrapClasses={btnsWrapClasses}
+      />
+    ) : (
+      <>
+        {isLoading && <Spinner onTopMode withOverlay whiteOverlay />}
+
+        {!!errorMsg && <UsersListError msg={errorMsg} />}
+
+        {users?.length ? (
+          <ul className={listClasses}>
+            {users?.map(({ id, name, avatarId }) => {
+              return (
+                <li key={id} className={itemClasses}>
+                  <UserPreview name={name} avatarId={avatarId} />
+                  <div className={btnsWrapClasses}>{renderActions?.(id)}</div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="text-center">{EMPTY_USERS_LIST}</p>
+        )}
+      </>
     );
-  }
 
-  if (error) {
-    return <ErrorWithReloadBtn title={error.message} />;
-  }
-
-  if (!users.length) {
-    return <p className="text-gray-500 text-center">{EMPTY_USERS_LIST}</p>;
-  }
-
-  return (
-    <ul className={listClasses}>
-      {users.map(({ id, name, avatarId }) => (
-        <li key={id} className={itemClasses}>
-          <UserPreview name={name} avatarId={avatarId} isLoading={isLoading} />
-          <div className={btnsWrapClasses}>{renderActions(id)}</div>
-        </li>
-      ))}
-    </ul>
-  );
+  return <div className={classes}>{content}</div>;
 };

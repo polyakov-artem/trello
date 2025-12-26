@@ -5,9 +5,20 @@ export type Board = {
   id: string;
   authorId: string;
   title: string;
+  columns: BoardColumn[];
 };
 
-export type BoardDraft = Partial<Omit<Board, 'id' | 'authorId'>>;
+export type BoardDraft = Omit<Board, 'id' | 'authorId' | 'columns'> & {
+  columns: Array<BoardColumnDraft | BoardColumn>;
+};
+
+export type BoardColumn = {
+  id: string;
+  title: string;
+  tasksIds: string[];
+};
+
+export type BoardColumnDraft = Omit<BoardColumn, 'id'>;
 
 export const boardApi = {
   async getBoards(sessionId: string, signal?: AbortSignal) {
@@ -16,24 +27,29 @@ export const boardApi = {
     });
   },
 
-  async createBoard(sessionId: string, board: BoardDraft, signal?: AbortSignal) {
+  async createBoard(sessionId: string, boardDraft: BoardDraft, signal?: AbortSignal) {
     return await safeFetch<Board>(`${API_URL}/boards?sessionId=${sessionId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(board),
+      body: JSON.stringify(boardDraft),
       signal,
     });
   },
 
-  async updateBoard(sessionId: string, boardId: string, board: BoardDraft, signal?: AbortSignal) {
+  async updateBoard(
+    sessionId: string,
+    boardId: string,
+    boardDraft: BoardDraft,
+    signal?: AbortSignal
+  ) {
     return await safeFetch<Board>(`${API_URL}/boards/${boardId}?sessionId=${sessionId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(board),
+      body: JSON.stringify(boardDraft),
       signal,
     });
   },

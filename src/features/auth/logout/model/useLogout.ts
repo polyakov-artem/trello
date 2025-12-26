@@ -14,11 +14,11 @@ import {
 import { useSessionUserStore } from '@/entities/user';
 import { authApi } from '@/shared/api/auth/authApi';
 import { useCallback } from 'react';
+import { useCanLogoutFn } from './guards';
 
 export const useLogout = () => {
   const setSessionState = useSessionStore.use.setState();
-  const checkIfLoadingSession = useSessionStore.use.checkIfLoading();
-  const getSession = useSessionStore.use.getValue();
+  const getSessionState = useSessionStore.use.getState();
 
   const resetSessionStore = useSessionStore.use.reset();
   const resetSessionUserStore = useSessionUserStore.use.reset();
@@ -33,46 +33,54 @@ export const useLogout = () => {
   const resetBoardDeletionStore = useBoardDeletionStore.use.reset();
   const resetBoardUpdateStore = useBoardUpdateStore.use.reset();
 
-  const logout = useCallback(async () => {
-    const sessionId = getSession()?.sessionId || '';
+  const canLogoutFn = useCanLogoutFn();
 
-    if (checkIfLoadingSession() || !sessionId) {
-      return;
-    }
+  const logout = useCallback(
+    async (onStart?: () => void, onEnd?: () => void) => {
+      if (!canLogoutFn()) {
+        return;
+      }
 
-    resetSessionStore();
-    resetSessionUserStore();
+      onStart?.();
 
-    resetTasksStore();
-    resetTaskCreationStore();
-    resetTaskDeletionStore();
-    resetTaskUpdateStore();
+      resetSessionStore();
+      resetSessionUserStore();
 
-    resetBoardsStore();
-    resetBoardCreationStore();
-    resetBoardDeletionStore();
-    resetBoardUpdateStore();
+      resetTasksStore();
+      resetTaskCreationStore();
+      resetTaskDeletionStore();
+      resetTaskUpdateStore();
 
-    setSessionState({ isLoading: true });
-    await authApi.logout(sessionId);
-    await sessionRepository.removeSession();
-    setSessionState({ isLoading: false });
-    return { success: true };
-  }, [
-    checkIfLoadingSession,
-    getSession,
-    resetBoardCreationStore,
-    resetBoardDeletionStore,
-    resetBoardUpdateStore,
-    resetBoardsStore,
-    resetSessionStore,
-    resetSessionUserStore,
-    resetTaskCreationStore,
-    resetTaskDeletionStore,
-    resetTaskUpdateStore,
-    resetTasksStore,
-    setSessionState,
-  ]);
+      resetBoardsStore();
+      resetBoardCreationStore();
+      resetBoardDeletionStore();
+      resetBoardUpdateStore();
+
+      setSessionState({ isLoading: true });
+      await authApi.logout(getSessionState().value?.sessionId || '');
+      await sessionRepository.removeSession();
+      setSessionState({ isLoading: false });
+
+      onEnd?.();
+
+      return { success: true };
+    },
+    [
+      canLogoutFn,
+      resetSessionStore,
+      resetSessionUserStore,
+      resetTasksStore,
+      resetTaskCreationStore,
+      resetTaskDeletionStore,
+      resetTaskUpdateStore,
+      resetBoardsStore,
+      resetBoardCreationStore,
+      resetBoardDeletionStore,
+      resetBoardUpdateStore,
+      setSessionState,
+      getSessionState,
+    ]
+  );
 
   return logout;
 };

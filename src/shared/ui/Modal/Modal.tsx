@@ -7,14 +7,14 @@ import { Button } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { createPortal } from 'react-dom';
 
-interface ModalProps {
-  closeModal: () => void;
-  isOpen: boolean;
+export type ModalProps = {
+  closeModal?: () => void;
+  isOpen?: boolean;
   title?: string;
   body?: React.ReactNode;
   buttons?: React.ReactNode;
   onCloseComplete?: () => void;
-}
+};
 
 const lockBody = () => {
   const scrollbarWidth = getScrollbarWidth();
@@ -125,7 +125,7 @@ const Modal: FC<ModalProps> = ({ closeModal, isOpen, title, body, buttons, onClo
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-10 "
           onClick={(e) => {
             if (e.target === overlayRef.current) {
-              closeModal();
+              closeModal?.();
             }
           }}>
           <div

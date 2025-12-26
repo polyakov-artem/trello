@@ -29,9 +29,20 @@ export type Board = {
   id: string;
   authorId: string;
   title: string;
+  columns: BoardColumn[];
 };
 
-export type BoardDraft = Partial<Omit<Board, 'id' | 'authorId'>>;
+export type BoardDraft = Omit<Board, 'id' | 'authorId' | 'columns'> & {
+  columns: Array<BoardColumnDraft | BoardColumn>;
+};
+
+export type BoardColumn = {
+  id: string;
+  title: string;
+  tasksIds: string[];
+};
+
+export type BoardColumnDraft = Omit<BoardColumn, 'id'>;
 
 const app = express();
 app.use(cors());
@@ -416,9 +427,9 @@ app.get('/boards', async (req: Request, res: Response) => {
     return res.status(401).json({ error: ERROR_UNAUTHORIZED });
   }
 
-  const userId = session.userId;
+  const sessionUserId = session.userId;
 
-  const boards = (await loadBoards()).filter((t) => t.authorId === userId);
+  const boards = (await loadBoards()).filter((t) => t.authorId === sessionUserId);
   res.json({ data: boards });
 });
 
@@ -426,7 +437,7 @@ app.post('/boards', async (req: Request, res: Response) => {
   await delay();
   const { sessionId } = req.query as { sessionId: string };
 
-  const { title = '' } = req.body as BoardDraft;
+  const { title, columns } = req.body as BoardDraft;
 
   const sessions = await loadSessions();
   const session = sessions[sessionId];
@@ -435,13 +446,24 @@ app.post('/boards', async (req: Request, res: Response) => {
     return res.status(401).json({ error: ERROR_UNAUTHORIZED });
   }
 
-  const userId = session.userId;
+  const sessionUserId = session.userId;
   const boards = await loadBoards();
+
+  const newColumns = columns.map((column) => {
+    const { id = nanoid(), title, tasksIds } = column as BoardColumn;
+
+    return {
+      id,
+      title,
+      tasksIds,
+    };
+  });
 
   const newBoard: Board = {
     id: nanoid(),
-    authorId: userId,
+    authorId: sessionUserId,
     title,
+    columns: newColumns,
   };
 
   await saveBoards([...boards, newBoard]);
@@ -452,7 +474,7 @@ app.put('/boards/:id', async (req: Request, res: Response) => {
   await delay();
   const { sessionId } = req.query as { sessionId: string };
 
-  const { title } = req.body as BoardDraft;
+  const { title, columns } = req.body as BoardDraft;
 
   const boardId = req.params.id;
   const sessions = await loadSessions();
@@ -474,13 +496,21 @@ app.put('/boards/:id', async (req: Request, res: Response) => {
     return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
   }
 
+  const updatedColumns = columns.map((column) => {
+    const { id = nanoid(), title, tasksIds } = column as BoardColumn;
+
+    return {
+      id,
+      title,
+      tasksIds,
+    };
+  });
+
   const updatedBoard: Board = {
     ...board,
+    title,
+    columns: updatedColumns,
   };
-
-  if (title !== undefined) {
-    updatedBoard.title = title;
-  }
 
   await saveBoards(boards.map((t) => (t.id === boardId ? updatedBoard : t)));
   res.json({ data: updatedBoard });

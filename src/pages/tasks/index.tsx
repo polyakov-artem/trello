@@ -1,74 +1,34 @@
-import { useSessionStore } from '@/entities/session';
-import { ScreenLoader } from '@/shared/ui/ScreenLoader/ScreenLoader';
-import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
 import { type FC } from 'react';
-import { BtnCreateTask } from '@/features/task/create';
-import { BtnUpdateTask } from '@/features/task/update';
-import { TasksTable } from '@/widgets/TasksTable';
-import { WindowUpdateTask } from '@/widgets/WindowUpdateTask';
-import { BtnDeleteTask } from '@/features/task/delete';
 
-const MSG_NO_PERMISSION = "Please log in. You don't have permission to create tasks";
+import { BtnCreateTask, CreateTaskProvider, ModalCreateTask } from '@/features/task/createTask';
+import { useTasksStore } from '@/entities/task';
+import { ModalUpdateTask, UpdateTaskProvider } from '@/features/task/updateTask';
+import { TasksTable } from '@/widgets/TasksTable';
+import { AuthProtected } from '@/widgets/AuthProtected';
+
 const TITLE = 'Tasks';
 
-const Container: FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="container mx-auto p-4 grow flex flex-col">{children}</div>
-);
-
-const Content: FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className=" self-center w-full flex flex-col gap-6">{children}</div>
-);
-
-const Title: FC = () => <h1 className="font-bold text-3xl text-center ">{TITLE}</h1>;
-
 export const TasksPage: FC = () => {
-  const sessionError = useSessionStore.use.error();
-  const sessionIsLoading = useSessionStore.use.isLoading();
-  const session = useSessionStore.use.value();
-
-  if (sessionError) {
-    return (
-      <Container>
-        <ErrorWithReloadBtn title={sessionError.message} />
-      </Container>
-    );
-  }
-
-  if (sessionIsLoading) {
-    return (
-      <Container>
-        <ScreenLoader />
-      </Container>
-    );
-  }
-
-  if (!session) {
-    return (
-      <Container>
-        <Content>
-          <Title />
-          <p className="font-bold text-center">{MSG_NO_PERMISSION}</p>
-        </Content>
-      </Container>
-    );
-  }
+  const tasks = useTasksStore.use.value();
+  const isLoadingTasks = useTasksStore.use.isLoading();
+  const tasksError = useTasksStore.use.error();
 
   return (
-    <WindowUpdateTask>
-      <Container>
-        <Content>
-          <Title />
-          <BtnCreateTask className={'ml-auto'} />
-          <TasksTable
-            renderActions={(taskId) => (
-              <div className="inline-flex flex-wrap gap-2 items-center">
-                <BtnDeleteTask taskId={taskId} />
-                <BtnUpdateTask taskId={taskId} />
-              </div>
-            )}
-          />
-        </Content>
-      </Container>
-    </WindowUpdateTask>
+    <CreateTaskProvider>
+      <UpdateTaskProvider>
+        <div className="container mx-auto p-4 grow flex">
+          <div className="flex flex-col gap-6 grow">
+            <h1 className="font-bold text-3xl text-center ">{TITLE}</h1>
+            <AuthProtected className="grow">
+              <BtnCreateTask className={'ml-auto'} />
+              <TasksTable tasks={tasks} isLoading={isLoadingTasks} errorMsg={tasksError?.message} />
+            </AuthProtected>
+          </div>
+        </div>
+
+        <ModalCreateTask />
+        <ModalUpdateTask />
+      </UpdateTaskProvider>
+    </CreateTaskProvider>
   );
 };

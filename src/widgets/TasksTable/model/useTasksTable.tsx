@@ -1,11 +1,14 @@
-import { useMemo, type ReactNode } from 'react';
+import { useCallback, useMemo } from 'react';
 import { type GetProp, type TableProps } from 'antd';
-import { useTasksStore } from '@/entities/task';
 import type { PropsWithClassName } from '@/shared/types/types';
 import type { Task } from '@/shared/api/task/taskApi';
+import { BtnDeleteTask } from '@/features/task/deleteTask';
+import { BtnUpdateTask } from '@/features/task/updateTask';
 
 export type TasksTableProps = PropsWithClassName & {
-  renderActions?: (taskId: string) => ReactNode;
+  isLoading?: boolean;
+  errorMsg?: string;
+  tasks?: Task[];
 };
 
 export type ColumnsType<T extends object> = GetProp<TableProps<T>, 'columns'>;
@@ -15,21 +18,24 @@ export type DataType = {
   key: string;
 } & Task;
 
-export const useTasksTable = ({ renderActions }: TasksTableProps) => {
-  const tasks = useTasksStore.use.value();
-  const isLoadingTasks = useTasksStore.use.isLoading();
-  const tasksError = useTasksStore.use.error();
-
-  const isLoading = isLoadingTasks;
-  const error = tasksError;
-
-  const data = useMemo(() => {
-    return tasks.map((task, index) => ({
+export const useTasksTable = ({ tasks, className, isLoading, errorMsg }: TasksTableProps) => {
+  const dataSource = useMemo(() => {
+    return (tasks || []).map((task, index) => ({
       ...task,
       key: task.id,
       index: index + 1,
     }));
   }, [tasks]);
+
+  const renderActions = useCallback(
+    (taskId: string) => (
+      <div className="inline-flex flex-wrap gap-2 items-center">
+        <BtnDeleteTask taskId={taskId} />
+        <BtnUpdateTask taskId={taskId} />
+      </div>
+    ),
+    []
+  );
 
   const columns: ColumnsType<DataType> = useMemo(() => {
     return [
@@ -66,11 +72,12 @@ export const useTasksTable = ({ renderActions }: TasksTableProps) => {
 
   return useMemo(
     () => ({
-      isLoading,
-      error,
-      data,
       columns,
+      dataSource,
+      className,
+      isLoading,
+      errorMsg,
     }),
-    [columns, data, error, isLoading]
+    [className, columns, dataSource, errorMsg, isLoading]
   );
 };

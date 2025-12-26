@@ -1,7 +1,7 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Component, type ErrorInfo } from 'react';
 import { errors } from '@/shared/constants/errorMsgs';
-import { ErrorWithReloadBtn } from '../ErrorWithReload/ErrorWithReloadBtn';
+import { ErrorBanner } from '../ErrorBanner/ErrorBanner';
 
 export type ErrorBoundaryProps = PropsWithChildren & {
   fallback?: ReactNode;
@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       return (
         <main className="flex flex-col min-h-dvh">
-          <ErrorWithReloadBtn title={this.state.error?.message || errors.unexpected} />
+          <ErrorBanner title={this.state.error?.message || errors.unexpected} />
         </main>
       );
     }

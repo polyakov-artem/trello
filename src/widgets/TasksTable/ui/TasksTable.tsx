@@ -1,14 +1,17 @@
 import { type FC } from 'react';
 import { Table } from 'antd';
-import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
+import { ErrorBanner } from '@/shared/ui/ErrorBanner/ErrorBanner';
 import { useTasksTable, type DataType, type TasksTableProps } from '../model/useTasksTable';
 
 export const TasksTable: FC<TasksTableProps> = (props: TasksTableProps) => {
-  const { className } = props;
-  const { isLoading, error, data, columns } = useTasksTable(props);
+  const { dataSource, columns, className, isLoading, errorMsg } = useTasksTable(props);
 
-  if (error) {
-    return <ErrorWithReloadBtn title={error.message} />;
+  if (errorMsg) {
+    return (
+      <div className="border rounded-sm border-gray-200">
+        <ErrorBanner title={errorMsg} withIcon inline />
+      </div>
+    );
   }
 
   return (
@@ -20,7 +23,7 @@ export const TasksTable: FC<TasksTableProps> = (props: TasksTableProps) => {
       showHeader={true}
       pagination={{ position: ['bottomCenter'] }}
       columns={columns}
-      dataSource={data}
+      dataSource={dataSource}
     />
   );
 };
