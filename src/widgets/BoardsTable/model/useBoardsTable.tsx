@@ -1,12 +1,15 @@
-import { useMemo, type ReactNode } from 'react';
+import { useCallback, useMemo } from 'react';
 import { type GetProp, type TableProps } from 'antd';
-import { useBoardsStore } from '@/entities/board';
 import type { PropsWithClassName } from '@/shared/types/types';
 import type { Board } from '@/shared/api/board/boardApi';
 import { Link } from 'react-router';
+import { BtnDeleteBoard } from '@/features/board/deleteBoard';
+import { BtnEditBoardTitle } from '@/features/board/editBoardTitle';
 
 export type BoardsTableProps = PropsWithClassName & {
-  renderActions?: (boardId: string) => ReactNode;
+  isLoading?: boolean;
+  errorMsg?: string;
+  boards?: Board[];
 };
 
 export type ColumnsType<T extends object> = GetProp<TableProps<T>, 'columns'>;
@@ -16,21 +19,24 @@ export type DataType = {
   key: string;
 } & Board;
 
-export const useBoardsTable = ({ renderActions }: BoardsTableProps) => {
-  const boards = useBoardsStore.use.value();
-  const isLoadingBoards = useBoardsStore.use.isLoading();
-  const boardsError = useBoardsStore.use.error();
-
-  const isLoading = isLoadingBoards;
-  const error = boardsError;
-
-  const data = useMemo(() => {
-    return boards.map((board, index) => ({
+export const useBoardsTable = ({ boards, className, isLoading, errorMsg }: BoardsTableProps) => {
+  const dataSource = useMemo(() => {
+    return (boards || []).map((board, index) => ({
       ...board,
       key: board.id,
       index: index + 1,
     }));
   }, [boards]);
+
+  const renderActions = useCallback(
+    (boardId: string) => (
+      <div className="inline-flex flex-wrap gap-2 items-center">
+        <BtnDeleteBoard boardId={boardId} />
+        <BtnEditBoardTitle boardId={boardId} />
+      </div>
+    ),
+    []
+  );
 
   const columns: ColumnsType<DataType> = useMemo(() => {
     return [
@@ -61,11 +67,6 @@ export const useBoardsTable = ({ renderActions }: BoardsTableProps) => {
   }, [renderActions]);
 
   return useMemo(() => {
-    return {
-      isLoading,
-      error,
-      data,
-      columns,
-    };
-  }, [columns, data, error, isLoading]);
+    return { dataSource, columns, className, isLoading, errorMsg };
+  }, [className, columns, dataSource, errorMsg, isLoading]);
 };

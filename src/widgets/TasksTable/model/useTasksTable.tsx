@@ -1,12 +1,8 @@
-import { useMemo, type ReactNode } from 'react';
+import { useCallback, useMemo } from 'react';
 import { type GetProp, type TableProps } from 'antd';
-import { useTasksStore } from '@/entities/task';
-import type { PropsWithClassName } from '@/shared/types/types';
-import type { Task } from '@/shared/api/task/taskApi';
-
-export type TasksTableProps = PropsWithClassName & {
-  renderActions?: (taskId: string) => ReactNode;
-};
+import type { Task } from '@/shared/types/types';
+import { BtnDeleteTask } from '@/features/task/deleteTask';
+import { BtnEditTask } from '@/features/task/EditTask';
 
 export type ColumnsType<T extends object> = GetProp<TableProps<T>, 'columns'>;
 
@@ -15,21 +11,27 @@ export type DataType = {
   key: string;
 } & Task;
 
-export const useTasksTable = ({ renderActions }: TasksTableProps) => {
-  const tasks = useTasksStore.use.value();
-  const isLoadingTasks = useTasksStore.use.isLoading();
-  const tasksError = useTasksStore.use.error();
+export const BTN_DELETE_TEXT = 'Delete';
+export const BTN_EDIT_TEXT = 'Edit';
 
-  const isLoading = isLoadingTasks;
-  const error = tasksError;
-
-  const data = useMemo(() => {
-    return tasks.map((task, index) => ({
+export const useTasksTable = (tasks?: Task[]) => {
+  const dataSource = useMemo(() => {
+    return (tasks || []).map((task, index) => ({
       ...task,
       key: task.id,
       index: index + 1,
     }));
   }, [tasks]);
+
+  const renderActions = useCallback(
+    (taskId: string) => (
+      <div className="inline-flex flex-wrap gap-2 items-center">
+        <BtnDeleteTask taskId={taskId}>{BTN_DELETE_TEXT}</BtnDeleteTask>
+        <BtnEditTask taskId={taskId}>{BTN_EDIT_TEXT}</BtnEditTask>
+      </div>
+    ),
+    []
+  );
 
   const columns: ColumnsType<DataType> = useMemo(() => {
     return [
@@ -66,11 +68,9 @@ export const useTasksTable = ({ renderActions }: TasksTableProps) => {
 
   return useMemo(
     () => ({
-      isLoading,
-      error,
-      data,
       columns,
+      dataSource,
     }),
-    [columns, data, error, isLoading]
+    [columns, dataSource]
   );
 };

@@ -4,18 +4,22 @@ import { nanoid } from 'nanoid';
 import fs from 'fs/promises';
 import path from 'path';
 
-export type User = {
+/* -------------------------------------------------------------------------- */
+/*                                    Types                                   */
+/* -------------------------------------------------------------------------- */
+
+type User = {
   id: string;
   name: string;
   avatarId: string;
 };
 
-export type Session = {
+type Session = {
   sessionId: string;
   userId: string;
 };
 
-export type Task = {
+type Task = {
   id: string;
   authorId: string;
   title: string;
@@ -23,39 +27,83 @@ export type Task = {
   completed: boolean;
 };
 
-export type TaskDraft = Partial<Omit<Task, 'id' | 'authorId'>>;
+type BoardColumn = {
+  id: string;
+  title: string;
+  tasksIds: string[];
+};
 
-export type Board = {
+type Board = {
   id: string;
   authorId: string;
   title: string;
+  columns: BoardColumn[];
 };
 
-export type BoardDraft = Partial<Omit<Board, 'id' | 'authorId'>>;
+/* ---------- Request body types ---------- */
+
+type CreateUserBody = {
+  name: string;
+  avatarId: string;
+};
+
+type CreateTaskBody = {
+  title?: string;
+  description?: string;
+  completed?: boolean;
+};
+
+type CreateBoardBody = {
+  title?: string;
+};
+
+type CreateBoardColumnBody = {
+  title?: string;
+};
+
+const BOARD_ID = 'boardId';
+const COLUMN_ID = 'columnId';
+const TASK_ID = 'taskId';
+const USER_ID = 'userId';
+const SESSION_ID = 'sessionId';
+
+const ERROR_PERMISSION_DENIED = 'Permission denied';
+const ERROR_AUTHORIZATION_REQUIRED = 'Authorization required';
+const ERROR_USER_NOT_FOUND = 'User not found';
+const ERROR_TASK_NOT_FOUND = 'Task not found';
+const ERROR_BOARD_NOT_FOUND = 'Board not found';
+const ERROR_COLUMN_NOT_FOUND = 'Column not found';
+const ERROR_MISSING_NAME_OR_AVATAR = 'Missing name or avatarId';
+const ERROR_SESSION_NOT_FOUND = 'Session not found';
+
+/* -------------------------------------------------------------------------- */
+/*                                   Setup                                    */
+/* -------------------------------------------------------------------------- */
+
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
 
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const DATA_DIR = './server/data';
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
-const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
-const BOARDS_FILE = path.join(DATA_DIR, 'boards.json');
+const FILES = {
+  users: path.join(DATA_DIR, 'users.json'),
+  sessions: path.join(DATA_DIR, 'sessions.json'),
+  tasks: path.join(DATA_DIR, 'tasks.json'),
+  boards: path.join(DATA_DIR, 'boards.json'),
+};
 
-const ERROR_UNAUTHORIZED = 'Unauthorized. Please log in again';
-const ERROR_USER_NOT_FOUND = 'User not found';
-const ERROR_SESSION_NOT_FOUND = 'Session not found. Please log in again';
-const ERROR_PERMISSION_DENIED = 'You do not have permission to perform this action';
-const ERROR_TASK_NOT_FOUND = 'Task not found';
-const ERROR_MISSING_NAME = 'Name is required';
-const ERROR_MISSING_AVATAR = 'Avatar is required';
-const ERROR_VALIDATION_FAILED = 'Validation failed';
-const ERROR_BOARD_NOT_FOUND = 'Task not found';
+const delay = (ms = 300): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
-await fs.mkdir(DATA_DIR, { recursive: true });
-
-const delay = (ms = 500) => new Promise((r) => setTimeout(r, ms));
+/* -------------------------------------------------------------------------- */
+/*                               File Helpers                                 */
+/* -------------------------------------------------------------------------- */
 
 async function readJSON<T>(file: string, fallback: T): Promise<T> {
   try {
@@ -67,458 +115,431 @@ async function readJSON<T>(file: string, fallback: T): Promise<T> {
 }
 
 async function writeJSON(file: string, data: unknown): Promise<void> {
+  await fs.mkdir(path.dirname(file), { recursive: true });
   await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-async function loadUsers(): Promise<User[]> {
-  return await readJSON<User[]>(USERS_FILE, []);
-}
+const db = {
+  users: (): Promise<User[]> => readJSON(FILES.users, []),
+  sessions: (): Promise<Record<string, Session>> => readJSON(FILES.sessions, {}),
+  tasks: (): Promise<Task[]> => readJSON(FILES.tasks, []),
+  boards: (): Promise<Board[]> => readJSON(FILES.boards, []),
 
-async function saveUsers(users: User[]): Promise<void> {
-  await writeJSON(USERS_FILE, users);
-}
-
-async function loadSessions(): Promise<Record<string, Session>> {
-  return await readJSON<Record<string, Session>>(SESSIONS_FILE, {});
-}
-
-async function saveSessions(sessions: Record<string, Session>): Promise<void> {
-  await writeJSON(SESSIONS_FILE, sessions);
-}
-
-async function loadTasks(): Promise<Task[]> {
-  return await readJSON<Task[]>(TASKS_FILE, []);
-}
-
-async function saveTasks(tasks: Task[]): Promise<void> {
-  await writeJSON(TASKS_FILE, tasks);
-}
-
-async function loadBoards(): Promise<Board[]> {
-  return await readJSON<Board[]>(BOARDS_FILE, []);
-}
-
-async function saveBoards(boards: Board[]): Promise<void> {
-  await writeJSON(BOARDS_FILE, boards);
-}
+  saveUsers: (d: User[]): Promise<void> => writeJSON(FILES.users, d),
+  saveSessions: (d: Record<string, Session>): Promise<void> => writeJSON(FILES.sessions, d),
+  saveTasks: (d: Task[]): Promise<void> => writeJSON(FILES.tasks, d),
+  saveBoards: (d: Board[]): Promise<void> => writeJSON(FILES.boards, d),
+};
 
 /* -------------------------------------------------------------------------- */
-/*                                  User APIs                                 */
+/*                              Helpers                                       */
 /* -------------------------------------------------------------------------- */
 
-// Register a user
-app.post('/users', async (req: Request, res: Response) => {
-  await delay();
-  const { name, avatarId } = req.body as { name: string; avatarId: string };
-  const errors = [];
+const getUserId = (req: Request) => req.params[USER_ID];
+const getBoardId = (req: Request) => req.params[BOARD_ID];
+const getColumnId = (req: Request) => req.params[COLUMN_ID];
+const getTaskId = (req: Request) => req.params[TASK_ID];
+const getSessionId = (req: Request) => (req.query as { [SESSION_ID]: string })[SESSION_ID];
 
-  if (!avatarId) {
-    errors.push({ field: 'avatarId', message: ERROR_MISSING_AVATAR });
+async function requireSession(req: Request, res: Response) {
+  const sessionId = getSessionId(req);
+
+  if (!sessionId) {
+    res.status(401).json({ error: ERROR_AUTHORIZATION_REQUIRED });
+    return {};
   }
 
-  if (!name) {
-    errors.push({ field: 'name', message: ERROR_MISSING_NAME });
-  }
-
-  if (errors.length) {
-    return res.status(400).json({ errors, error: ERROR_VALIDATION_FAILED });
-  }
-
-  const users = await loadUsers();
-  const newUser: User = { id: nanoid(), name, avatarId };
-  users.push(newUser);
-  await saveUsers(users);
-
-  res.status(201).json({ data: newUser });
-});
-
-// Get all users
-app.get('/users', async (_req: Request, res: Response) => {
-  await delay();
-  const users = await loadUsers();
-  res.json({ data: users });
-});
-
-// Get user by ID (requires valid session)
-app.get('/users/:id', async (req: Request, res: Response) => {
-  await delay();
-
-  const { sessionId } = req.query as { sessionId: string };
-
-  const sessions = await loadSessions();
+  const sessions = await db.sessions();
   const session = sessions[sessionId];
 
   if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
+    res.status(404).json({ error: ERROR_SESSION_NOT_FOUND });
+    return {};
   }
 
-  const userId = session.userId;
+  return { session, sessions };
+}
 
-  if (userId !== req.params.id) {
-    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+async function requireUserBoards(req: Request, res: Response) {
+  const { session } = await requireSession(req, res);
+  if (!session) return {};
+
+  const boards = await db.boards();
+
+  return {
+    userBoards: boards.filter((b) => b.authorId === session.userId),
+    boards,
+    session,
+  };
+}
+
+async function requireBoard(req: Request, res: Response) {
+  const { session } = await requireSession(req, res);
+  if (!session) return {};
+
+  const boardId = getBoardId(req);
+  const boards = await db.boards();
+  const board = boards.find((b) => b.id === boardId);
+
+  if (!board) {
+    res.status(404).json({ error: ERROR_BOARD_NOT_FOUND });
+    return {};
   }
 
-  const users = await loadUsers();
-  const user = users.find((u) => u.id === userId);
+  if (board.authorId !== session.userId) {
+    res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+    return {};
+  }
+
+  return { board, boards, session };
+}
+
+async function requireBoardColumn(req: Request, res: Response) {
+  const { boards, board, session } = await requireBoard(req, res);
+  if (!board) return {};
+
+  const columnId = getColumnId(req);
+  const column = board.columns.find((c) => c.id === columnId);
+
+  if (!column) {
+    res.status(404).json({ error: ERROR_COLUMN_NOT_FOUND });
+    return {};
+  }
+
+  return { boards, board, column, session };
+}
+
+async function requireUser(req: Request, res: Response) {
+  const { session } = await requireSession(req, res);
+  if (!session) return {};
+
+  const userId = getUserId(req);
+  const users = await db.users();
+  const user = users.find((b) => b.id === userId);
 
   if (!user) {
-    return res.status(404).json({ error: ERROR_USER_NOT_FOUND });
+    res.status(404).json({ error: ERROR_USER_NOT_FOUND });
+    return {};
   }
+
+  if (user.id !== session.userId) {
+    res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+    return {};
+  }
+
+  return { user, users, session };
+}
+
+async function requireUserTasks(req: Request, res: Response) {
+  const { session } = await requireSession(req, res);
+  if (!session) return {};
+
+  const tasks = await db.tasks();
+
+  return { userTasks: tasks.filter((t) => t.authorId === session.userId), tasks, session };
+}
+
+async function requireTask(req: Request, res: Response) {
+  const { session } = await requireSession(req, res);
+  if (!session) return {};
+
+  const taskId = getTaskId(req);
+  const tasks = await db.tasks();
+  const task = tasks.find((t) => t.id === taskId);
+
+  if (!task) {
+    res.status(404).json({ error: ERROR_TASK_NOT_FOUND });
+    return {};
+  }
+
+  if (task.authorId !== session.userId) {
+    res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+    return {};
+  }
+
+  return { task, tasks, session };
+}
+
+const createBoardColumn = (title: string) => ({
+  title,
+  tasksIds: [],
+  id: nanoid(),
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                   Users                                    */
+/* -------------------------------------------------------------------------- */
+
+app.post('/users', async (req, res) => {
+  await delay();
+  const { name, avatarId } = req.body as CreateUserBody;
+
+  if (!name || !avatarId) {
+    return res.status(400).json({ error: ERROR_MISSING_NAME_OR_AVATAR });
+  }
+
+  const users = await db.users();
+  const user: User = { id: nanoid(), name, avatarId };
+  await db.saveUsers([...users, user]);
+
+  res.status(201).json({ data: user });
+});
+
+app.get('/users', async (_req, res) => {
+  await delay();
+  res.json({ data: await db.users() });
+});
+
+app.get(`/users/:${USER_ID}`, async (req, res) => {
+  await delay();
+
+  const { user } = await requireUser(req, res);
+  if (!user) return;
 
   res.json({ data: user });
 });
 
-// Remove user
-app.delete('/users/:id', async (req: Request, res: Response) => {
+app.delete(`/users/:${USER_ID}`, async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
 
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+  const { user, users } = await requireUser(req, res);
+  if (!user) return;
 
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
+  await db.saveUsers(users.filter((u) => u.id !== user.id));
+  await db.saveTasks((await db.tasks()).filter((t) => t.authorId !== user.id));
+  await db.saveBoards((await db.boards()).filter((b) => b.authorId !== user.id));
 
-  const userId = session.userId;
-
-  if (userId !== req.params.id) {
-    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
-  }
-
-  const users = await loadUsers();
-  const updatedUsers = users.filter((u) => u.id !== userId);
-
-  await saveUsers(updatedUsers);
-
-  // Clean up orphaned sessions
-  const updatedSessions = Object.fromEntries(
-    Object.entries(sessions).filter(([, s]) => s.userId !== userId)
-  );
-  await saveSessions(updatedSessions);
-
-  // Clean up orphaned tasks
-  const tasks = await loadTasks();
-  const updatedTasks = tasks.filter((t) => t.authorId !== userId);
-  await saveTasks(updatedTasks);
-
-  // Clean up orphaned boards
-  const boards = await loadBoards();
-  const updatedBoards = boards.filter((b) => b.authorId !== userId);
-  await saveBoards(updatedBoards);
+  const sessions = await db.sessions();
+  Object.keys(sessions).forEach((k) => sessions[k].userId === user.id && delete sessions[k]);
+  await db.saveSessions(sessions);
 
   res.json({ data: { success: true } });
 });
 
 /* -------------------------------------------------------------------------- */
-/*                                Session APIs                                */
+/*                                  Sessions                                  */
 /* -------------------------------------------------------------------------- */
 
-// Login using userId
-app.post('/sessions/login/user', async (req: Request, res: Response) => {
+app.post(`/sessions/login/:${USER_ID}`, async (req, res) => {
   await delay();
-  const { userId } = req.body as { userId: string };
+  const userId = getUserId(req);
+  const user = (await db.users()).find((u) => u.id === userId);
 
-  const users = await loadUsers();
-  const user = users.find((u) => u.id === userId);
+  if (!user) return res.status(404).json({ error: ERROR_USER_NOT_FOUND });
 
-  if (!user) {
-    return res.status(404).json({ error: ERROR_USER_NOT_FOUND });
-  }
-
-  const sessions = await loadSessions();
-
+  const sessions = await db.sessions();
   const existingSession = Object.values(sessions).find((s) => s.userId === userId);
 
   if (existingSession) {
     delete sessions[existingSession.sessionId];
-    await saveSessions(sessions);
   }
 
-  const sessionId = nanoid();
-  const newSession: Session = { sessionId, userId };
-  await saveSessions({ ...sessions, [sessionId]: newSession });
+  const newSession: Session = { sessionId: nanoid(), userId };
+  await db.saveSessions({ ...sessions, [newSession.sessionId]: newSession });
 
   res.json({ data: newSession });
 });
 
-// Login using sessionId
-app.post('/sessions/login/session', async (req: Request, res: Response) => {
+app.post('/sessions/login', async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
 
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+  const { session } = await requireSession(req, res);
+  if (!session) return;
 
-  if (!session) {
-    return res.status(404).json({ error: ERROR_SESSION_NOT_FOUND });
-  }
-
-  const users = await loadUsers();
-  const user = users.find((u) => u.id === session.userId);
-
-  if (!user) {
-    return res.status(404).json({ error: ERROR_USER_NOT_FOUND });
-  }
-
-  res.json({ data: { sessionId, userId: user.id } });
+  res.json({ data: session });
 });
 
-app.post('/sessions/logout', async (req: Request, res: Response) => {
+app.post('/sessions/logout', async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
+  const { session, sessions } = await requireSession(req, res);
+  if (!session) return;
 
-  const sessions = await loadSessions();
-
-  const session = sessions[sessionId];
-
-  if (session) {
-    delete sessions[sessionId];
-    await saveSessions(sessions);
-  }
+  delete sessions[session.sessionId];
+  await db.saveSessions(sessions);
 
   res.json({ data: { success: true } });
 });
 
 /* -------------------------------------------------------------------------- */
-/*                                  Tasks APIs                                 */
+/*                                   Tasks                                    */
 /* -------------------------------------------------------------------------- */
 
-app.get('/tasks', async (req: Request, res: Response) => {
+app.get('/tasks', async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
+  const { userTasks } = await requireUserTasks(req, res);
+  if (!userTasks) return;
 
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
-
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const userId = session.userId;
-
-  const tasks = (await loadTasks()).filter((t) => t.authorId === userId);
-  res.json({ data: tasks });
+  res.json({ data: userTasks });
 });
 
-app.post('/tasks', async (req: Request, res: Response) => {
+app.post('/tasks', async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
+  const { session } = await requireSession(req, res);
+  if (!session) return;
 
-  const { title = '', description = '', completed = false } = req.body as TaskDraft;
+  const { title = '', description = '', completed = false } = req.body as CreateTaskBody;
 
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
-
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const userId = session.userId;
-  const tasks = await loadTasks();
-
-  const newTask: Task = {
+  const task: Task = {
     id: nanoid(),
-    authorId: userId,
+    authorId: session.userId,
     title,
     description,
     completed,
   };
 
-  await saveTasks([...tasks, newTask]);
-  res.json({ data: newTask });
+  await db.saveTasks([...(await db.tasks()), task]);
+  res.json({ data: task });
 });
 
-app.put('/tasks/:id', async (req: Request, res: Response) => {
+app.put(`/tasks/:${TASK_ID}`, async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
+  const { task, tasks } = await requireTask(req, res);
+  if (!task) return;
 
-  const { title, description, completed } = req.body as TaskDraft;
+  const { title = '', description = '', completed = false } = req.body as CreateTaskBody;
 
-  const taskId = req.params.id;
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+  const updatedTask = { ...task, title, description, completed };
+  await db.saveTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)));
 
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const tasks = await loadTasks();
-
-  const task = tasks.find((t) => t.id === taskId);
-
-  if (!task) {
-    return res.status(404).json({ error: ERROR_TASK_NOT_FOUND });
-  }
-
-  if (task.authorId !== session.userId) {
-    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
-  }
-
-  const updatedTask: Task = {
-    ...task,
-  };
-
-  if (title !== undefined) {
-    updatedTask.title = title;
-  }
-  if (description !== undefined) {
-    updatedTask.description = description;
-  }
-  if (completed !== undefined) {
-    updatedTask.completed = completed;
-  }
-
-  await saveTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
   res.json({ data: updatedTask });
 });
 
-app.delete('/tasks/:id', async (req: Request, res: Response) => {
+app.delete(`/tasks/:${TASK_ID}`, async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
 
-  const taskId = req.params.id;
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+  const { task, tasks } = await requireTask(req, res);
+  if (!task) return;
 
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const tasks = await loadTasks();
-
-  const task = tasks.find((t) => t.id === taskId);
-
-  if (!task) {
-    return res.status(404).json({ error: ERROR_TASK_NOT_FOUND });
-  }
-
-  if (task.authorId !== session.userId) {
-    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
-  }
-
-  await saveTasks(tasks.filter((t) => t.id !== taskId));
+  await db.saveTasks(tasks.filter((t) => t.id !== task.id));
   res.json({ data: { success: true } });
 });
 
 /* -------------------------------------------------------------------------- */
-/*                                  Boards APIs                                 */
+/*                                   Boards                                   */
 /* -------------------------------------------------------------------------- */
 
-app.get('/boards', async (req: Request, res: Response) => {
+app.post('/boards', async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
+  const { session } = await requireSession(req, res);
+  if (!session) return;
 
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+  const { title = '' } = req.body as CreateBoardBody;
 
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const userId = session.userId;
-
-  const boards = (await loadBoards()).filter((t) => t.authorId === userId);
-  res.json({ data: boards });
-});
-
-app.post('/boards', async (req: Request, res: Response) => {
-  await delay();
-  const { sessionId } = req.query as { sessionId: string };
-
-  const { title = '' } = req.body as BoardDraft;
-
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
-
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const userId = session.userId;
-  const boards = await loadBoards();
-
-  const newBoard: Board = {
+  const board: Board = {
     id: nanoid(),
-    authorId: userId,
+    authorId: session.userId,
     title,
+    columns: [],
   };
 
-  await saveBoards([...boards, newBoard]);
-  res.json({ data: newBoard });
+  await db.saveBoards([...(await db.boards()), board]);
+  res.json({ data: board });
 });
 
-app.put('/boards/:id', async (req: Request, res: Response) => {
+app.get('/boards', async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
+  const { userBoards } = await requireUserBoards(req, res);
+  if (!userBoards) return;
 
-  const { title } = req.body as BoardDraft;
+  res.json({
+    data: userBoards,
+  });
+});
 
-  const boardId = req.params.id;
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+app.put(`/boards/:${BOARD_ID}`, async (req, res) => {
+  await delay();
 
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
+  const { board, boards } = await requireBoard(req, res);
+  if (!board) return;
 
-  const boards = await loadBoards();
+  const { title = '' } = req.body as CreateBoardBody;
+  const updatedBoard: Board = { ...board, title };
 
-  const board = boards.find((t) => t.id === boardId);
-
-  if (!board) {
-    return res.status(404).json({ error: ERROR_BOARD_NOT_FOUND });
-  }
-
-  if (board.authorId !== session.userId) {
-    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
-  }
-
-  const updatedBoard: Board = {
-    ...board,
-  };
-
-  if (title !== undefined) {
-    updatedBoard.title = title;
-  }
-
-  await saveBoards(boards.map((t) => (t.id === boardId ? updatedBoard : t)));
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? updatedBoard : b)));
   res.json({ data: updatedBoard });
 });
 
-app.delete('/boards/:id', async (req: Request, res: Response) => {
+app.delete(`/boards/:${BOARD_ID}`, async (req, res) => {
   await delay();
-  const { sessionId } = req.query as { sessionId: string };
 
-  const boardId = req.params.id;
-  const sessions = await loadSessions();
-  const session = sessions[sessionId];
+  const { board, boards } = await requireBoard(req, res);
+  if (!board) return;
 
-  if (!session) {
-    return res.status(401).json({ error: ERROR_UNAUTHORIZED });
-  }
-
-  const boards = await loadBoards();
-
-  const board = boards.find((t) => t.id === boardId);
-
-  if (!board) {
-    return res.status(404).json({ error: ERROR_BOARD_NOT_FOUND });
-  }
-
-  if (board.authorId !== session.userId) {
-    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
-  }
-
-  await saveBoards(boards.filter((t) => t.id !== boardId));
+  await db.saveBoards(boards.filter((b) => b.id !== board.id));
   res.json({ data: { success: true } });
 });
 
-/* -------------------------------------------------------------------------- */
-/*                                   Server                                   */
-/* -------------------------------------------------------------------------- */
+app.post(`/boards/:${BOARD_ID}/columns`, async (req, res) => {
+  await delay();
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
+  const { board, boards } = await requireBoard(req, res);
+  if (!board) return;
+
+  const { title = '' } = req.body as CreateBoardColumnBody;
+
+  const updatedBoard: Board = {
+    ...board,
+    columns: [...board.columns, createBoardColumn(title)],
+  };
+
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? updatedBoard : b)));
+  res.json({ data: updatedBoard });
 });
+
+app.delete(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}`, async (req, res) => {
+  await delay();
+
+  const { board, boards, column } = await requireBoardColumn(req, res);
+  if (!column) return;
+
+  const updatedBoard: Board = {
+    ...board,
+    columns: board.columns.filter((c) => c.id !== column.id),
+  };
+
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? updatedBoard : b)));
+  res.json({ data: updatedBoard });
+});
+
+app.put(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}`, async (req, res) => {
+  await delay();
+
+  const { board, boards, column } = await requireBoardColumn(req, res);
+  if (!column) return;
+
+  const { title = '' } = req.body as CreateBoardColumnBody;
+  const updatedColumn = { ...column, title };
+
+  const updatedBoard: Board = {
+    ...board,
+    columns: board.columns.map((c) => (c.id === column.id ? updatedColumn : c)),
+  };
+
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? updatedBoard : b)));
+  res.json({ data: updatedBoard });
+});
+
+app.post(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}/tasks`, async (req, res) => {
+  await delay();
+
+  const { board, boards, column, session } = await requireBoardColumn(req, res);
+  if (!column) return;
+
+  const { title = '', description = '', completed = false } = req.body as CreateTaskBody;
+
+  const task: Task = {
+    id: nanoid(),
+    authorId: session.userId,
+    title,
+    description,
+    completed,
+  };
+
+  await db.saveTasks([...(await db.tasks()), task]);
+  column.tasksIds.push(task.id);
+
+  await db.saveBoards(boards);
+  res.json({ data: { board, task } });
+});
+
+app.listen(3000, () => console.log('🚀 Trello-like API running on http://localhost:3000'));

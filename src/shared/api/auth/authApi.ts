@@ -8,19 +8,15 @@ export type Session = {
 
 export const authApi = {
   loginWithSessionId: async (sessionId: string, signal?: AbortSignal) => {
-    return await safeFetch<Session>(`${API_URL}/sessions/login/session?sessionId=${sessionId}`, {
+    return await safeFetch<Session>(`${API_URL}/sessions/login?sessionId=${sessionId}`, {
       method: 'POST',
       signal,
     });
   },
 
   loginWithUserId: async (userId: string, signal?: AbortSignal) => {
-    return await safeFetch<Session>(`${API_URL}/sessions/login/user`, {
+    return await safeFetch<Session>(`${API_URL}/sessions/login/${userId}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
       signal,
     });
   },

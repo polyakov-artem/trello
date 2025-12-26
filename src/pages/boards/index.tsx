@@ -1,74 +1,42 @@
-import { useSessionStore } from '@/entities/session';
-import { ScreenLoader } from '@/shared/ui/ScreenLoader/ScreenLoader';
-import { ErrorWithReloadBtn } from '@/shared/ui/ErrorWithReload/ErrorWithReloadBtn';
 import { type FC } from 'react';
-import { BtnCreateBoard } from '@/features/board/create';
-import { BtnUpdateBoard } from '@/features/board/update';
+import { useBoardsArray, useBoardsError, useBoardsIsLoading } from '@/entities/board';
+import {
+  BtnCreateBoard,
+  CreateBoardProvider,
+  ModalCreateBoard,
+} from '@/features/board/createBoard';
 import { BoardsTable } from '@/widgets/BoardsTable';
-import { WindowUpdateBoard } from '@/widgets/WindowUpdateBoard';
-import { BtnDeleteBoard } from '@/features/board/delete';
+import { AuthProtected } from '@/widgets/AuthProtected';
+import { EditBoardTitleProvider, ModalEditBoardTitle } from '@/features/board/editBoardTitle';
 
-const MSG_NO_PERMISSION = "Please log in. You don't have permission to create boards";
 const TITLE = 'Boards';
 
-const Container: FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="container mx-auto p-4 grow flex flex-col">{children}</div>
-);
-
-const Content: FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className=" self-center w-full flex flex-col gap-6">{children}</div>
-);
-
-const Title: FC = () => <h1 className="font-bold text-3xl text-center ">{TITLE}</h1>;
-
 export const BoardsPage: FC = () => {
-  const sessionError = useSessionStore.use.error();
-  const sessionIsLoading = useSessionStore.use.isLoading();
-  const session = useSessionStore.use.value();
-
-  if (sessionError) {
-    return (
-      <Container>
-        <ErrorWithReloadBtn title={sessionError.message} />
-      </Container>
-    );
-  }
-
-  if (sessionIsLoading) {
-    return (
-      <Container>
-        <ScreenLoader />
-      </Container>
-    );
-  }
-
-  if (!session) {
-    return (
-      <Container>
-        <Content>
-          <Title />
-          <p className="font-bold text-center">{MSG_NO_PERMISSION}</p>
-        </Content>
-      </Container>
-    );
-  }
+  const boards = useBoardsArray();
+  const isLoadingBoards = useBoardsIsLoading();
+  const boardsError = useBoardsError();
 
   return (
-    <WindowUpdateBoard>
-      <Container>
-        <Content>
-          <Title />
-          <BtnCreateBoard className={'ml-auto'} />
-          <BoardsTable
-            renderActions={(boardId) => (
-              <div className="inline-flex flex-wrap gap-2 items-center">
-                <BtnDeleteBoard boardId={boardId} />
-                <BtnUpdateBoard boardId={boardId} />
-              </div>
-            )}
-          />
-        </Content>
-      </Container>
-    </WindowUpdateBoard>
+    <CreateBoardProvider>
+      <EditBoardTitleProvider>
+        <div className="container mx-auto p-4 grow flex">
+          <div className="flex flex-col gap-6 grow">
+            <h1 className="font-bold text-3xl text-center ">{TITLE}</h1>
+            <AuthProtected className="grow">
+              <BtnCreateBoard className={'ml-auto'} />
+
+              <BoardsTable
+                boards={boards}
+                isLoading={isLoadingBoards}
+                errorMsg={boardsError?.message}
+              />
+            </AuthProtected>
+          </div>
+        </div>
+
+        <ModalEditBoardTitle />
+        <ModalCreateBoard />
+      </EditBoardTitleProvider>
+    </CreateBoardProvider>
   );
 };

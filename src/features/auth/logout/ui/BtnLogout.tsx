@@ -1,23 +1,17 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Button } from 'antd';
-import { useCallback, useState, type FC } from 'react';
-import { useLogout } from '../model/useLogout';
+import { type FC } from 'react';
+import { useBtnLogout } from '../model/useBtnLogout';
 
 export type BtnLogoutProps = PropsWithClassName;
 
 export const BtnLogout: FC<BtnLogoutProps> = ({ className }) => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const logout = useLogout();
-
-  const handleClick = useCallback(() => {
-    setIsLoading(true);
-    void logout().finally(() => setIsLoading(false));
-  }, [logout]);
+  const { isLoading, handleClick, isBtnDisabled } = useBtnLogout();
 
   return (
     <>
       <Button
+        disabled={isBtnDisabled}
         loading={isLoading}
         onClick={handleClick}
         color="default"
