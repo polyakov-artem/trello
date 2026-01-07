@@ -44,8 +44,15 @@ export type BoardColumn = {
 
 export type BoardColumnDraft = Omit<BoardColumn, 'id'>;
 
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const DATA_DIR = './server/data';
