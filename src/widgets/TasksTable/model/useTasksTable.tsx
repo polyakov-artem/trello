@@ -18,6 +18,9 @@ export type DataType = {
   key: string;
 } & Task;
 
+export const BTN_DELETE_TEXT = 'Delete';
+export const BTN_EDIT_TEXT = 'Edit';
+
 export const useTasksTable = ({ tasks, className, isLoading, errorMsg }: TasksTableProps) => {
   const dataSource = useMemo(() => {
     return (tasks || []).map((task, index) => ({
@@ -30,8 +33,8 @@ export const useTasksTable = ({ tasks, className, isLoading, errorMsg }: TasksTa
   const renderActions = useCallback(
     (taskId: string) => (
       <div className="inline-flex flex-wrap gap-2 items-center">
-        <BtnDeleteTask taskId={taskId} />
-        <BtnUpdateTask taskId={taskId} />
+        <BtnDeleteTask taskId={taskId}>{BTN_DELETE_TEXT}</BtnDeleteTask>
+        <BtnUpdateTask taskId={taskId}>{BTN_EDIT_TEXT}</BtnUpdateTask>
       </div>
     ),
     []

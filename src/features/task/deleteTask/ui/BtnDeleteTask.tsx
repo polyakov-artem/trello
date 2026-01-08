@@ -1,20 +1,22 @@
-import { type FC } from 'react';
+import { type FC, type PropsWithChildren } from 'react';
 
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Button } from 'antd';
 import { useBtnDeleteTask } from '../model/useBtnDeleteTask';
+import type { BaseButtonProps } from 'antd/es/button/button';
 
 export type BtnDeleteTaskProps = {
   taskId: string;
-} & PropsWithClassName;
+  size?: BaseButtonProps['size'];
+} & PropsWithClassName &
+  PropsWithChildren;
 
-export const TITLE = 'Delete';
-
-export const BtnDeleteTask: FC<BtnDeleteTaskProps> = ({ taskId, className }) => {
+export const BtnDeleteTask: FC<BtnDeleteTaskProps> = ({ taskId, className, children, size }) => {
   const { isDeleting, handleClick, isBtnDisabled } = useBtnDeleteTask(taskId);
 
   return (
     <Button
+      size={size}
       disabled={isBtnDisabled}
       loading={isDeleting}
       onClick={handleClick}
@@ -22,7 +24,7 @@ export const BtnDeleteTask: FC<BtnDeleteTaskProps> = ({ taskId, className }) => 
       variant="solid"
       className={className}
       iconPosition={'end'}>
-      {TITLE}
+      {children}
     </Button>
   );
 };

@@ -1,13 +1,16 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Button } from 'antd';
-import { useCallback, type FC } from 'react';
+import { useCallback, type FC, type PropsWithChildren } from 'react';
 import { useUpdateTaskContext } from '../model/updateTaskContext';
+import type { BaseButtonProps } from 'antd/es/button/button';
 
-export type BtnUpdateTaskProps = PropsWithClassName & {
-  taskId: string;
-};
+export type BtnUpdateTaskProps = PropsWithChildren &
+  PropsWithClassName & {
+    taskId: string;
+    size?: BaseButtonProps['size'];
+  };
 
-export const BtnUpdateTask: FC<BtnUpdateTaskProps> = ({ className, taskId }) => {
+export const BtnUpdateTask: FC<BtnUpdateTaskProps> = ({ className, taskId, children, size }) => {
   const { openModal } = useUpdateTaskContext();
 
   const handleClick = useCallback(() => {
@@ -17,12 +20,13 @@ export const BtnUpdateTask: FC<BtnUpdateTaskProps> = ({ className, taskId }) => 
   return (
     <>
       <Button
+        size={size}
         onClick={handleClick}
         color="green"
         variant="solid"
         className={className}
         iconPosition={'end'}>
-        Edit
+        {children}
       </Button>
     </>
   );
