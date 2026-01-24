@@ -69,9 +69,7 @@ const ERROR_TASK_NOT_FOUND = 'Task not found';
 const ERROR_MISSING_NAME = 'Name is required';
 const ERROR_MISSING_AVATAR = 'Avatar is required';
 const ERROR_VALIDATION_FAILED = 'Validation failed';
-const ERROR_BOARD_NOT_FOUND = 'Task not found';
-
-await fs.mkdir(DATA_DIR, { recursive: true });
+const ERROR_BOARD_NOT_FOUND = 'Board not found';
 
 const delay = (ms = 500) => new Promise((r) => setTimeout(r, ms));
 

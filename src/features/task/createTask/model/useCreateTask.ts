@@ -1,6 +1,5 @@
 import { useSessionStore } from '@/entities/session';
-import { useTaskCreationStore, useTasksStore } from '@/entities/task';
-import { taskApi } from '@/shared/api/task/taskApi';
+import { useCreateTaskFx } from '@/entities/task';
 import type { TaskDraft } from '@/shared/api/task/taskApi';
 import { useCallback } from 'react';
 import { useCanCreateTaskFn } from './guards';
@@ -8,44 +7,22 @@ import { useCanCreateTaskFn } from './guards';
 export const useCreateTask = () => {
   const getSessionState = useSessionStore.use.getState();
   const canCreateTask = useCanCreateTaskFn();
+  const createTaskFx = useCreateTaskFx();
 
-  const setCancelRef = useTaskCreationStore.use.setCancelRef();
-  const setTaskCreationState = useTaskCreationStore.use.setState();
-
-  const setTasksState = useTasksStore.use.setState();
-
-  const createTask = useCallback(
-    async (task: TaskDraft, onStart?: () => void) => {
+  return useCallback(
+    async (task: TaskDraft, onStart?: () => void, onEnd?: () => void) => {
       if (!canCreateTask()) {
         return;
       }
 
       onStart?.();
 
-      setTaskCreationState({ isLoading: true, error: undefined });
-
-      const controller = new AbortController();
-      setCancelRef(() => controller.abort());
-
       const sessionId = getSessionState().value?.sessionId || '';
-      const result = await taskApi.createTask(sessionId, task, controller.signal);
-      const isAborted = controller.signal.aborted;
+      const result = await createTaskFx(sessionId, task);
 
-      if (!isAborted) {
-        if (result.ok) {
-          setTasksState((prevState) => {
-            return { value: [...(prevState.value || []), result.data] };
-          });
-        } else {
-          setTaskCreationState({ error: result.error });
-        }
-      }
-
-      setTaskCreationState({ isLoading: false });
-      return isAborted ? undefined : result;
+      onEnd?.();
+      return result;
     },
-    [canCreateTask, getSessionState, setCancelRef, setTaskCreationState, setTasksState]
+    [canCreateTask, createTaskFx, getSessionState]
   );
-
-  return createTask;
 };

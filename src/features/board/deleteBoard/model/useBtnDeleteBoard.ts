@@ -10,33 +10,36 @@ export const TEXT = 'Вы действительно хотите удалит
 export const useBtnDeleteBoard = (boardId: string) => {
   const deleteBoard = useDeleteBoard();
   const canDeleteBoard = useCanDeleteBoard();
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { getConfirmation } = useConfirmationContext();
 
-  const handleClick = useCallback(() => {
-    void getConfirmation({
+  const deletionHandler = useCallback(async () => {
+    const confirmed = await getConfirmation({
       title: TITLE,
       body: TEXT,
-    })
-      .then((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
+    });
 
-        setIsDeleting(true);
-        return deleteBoard(boardId);
-      })
-      .then((result) => {
-        if (result?.ok === false) {
-          toast.error(result.error.message);
-        }
+    if (!confirmed) {
+      return;
+    }
 
-        setIsDeleting(false);
-      });
+    setIsProcessing(true);
+
+    const result = await deleteBoard(boardId);
+
+    if (result?.ok === false) {
+      toast.error(result.error.message);
+    }
+
+    setIsProcessing(false);
   }, [deleteBoard, boardId, getConfirmation]);
 
+  const handleClick = useCallback(() => {
+    void deletionHandler();
+  }, [deletionHandler]);
+
   return useMemo(
-    () => ({ isDeleting, handleClick, isBtnDisabled: !canDeleteBoard }),
-    [isDeleting, handleClick, canDeleteBoard]
+    () => ({ isProcessing, handleClick, isBtnDisabled: !canDeleteBoard }),
+    [isProcessing, handleClick, canDeleteBoard]
   );
 };

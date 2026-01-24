@@ -4,7 +4,7 @@ import type { PropsWithClassName } from '@/shared/types/types';
 import type { Board } from '@/shared/api/board/boardApi';
 import { Link } from 'react-router';
 import { BtnDeleteBoard } from '@/features/board/deleteBoard';
-import { BtnEditBoard } from '@/features/board/editBoard';
+import { BtnEditBoardTitle } from '@/features/board/editBoardTitle';
 
 export type BoardsTableProps = PropsWithClassName & {
   isLoading?: boolean;
@@ -32,7 +32,7 @@ export const useBoardsTable = ({ boards, className, isLoading, errorMsg }: Board
     (boardId: string) => (
       <div className="inline-flex flex-wrap gap-2 items-center">
         <BtnDeleteBoard boardId={boardId} />
-        <BtnEditBoard boardId={boardId} />
+        <BtnEditBoardTitle boardId={boardId} />
       </div>
     ),
     []

@@ -10,12 +10,12 @@ export type BtnDeleteBoardProps = {
 export const TITLE = 'Delete';
 
 export const BtnDeleteBoard: FC<BtnDeleteBoardProps> = ({ boardId, className }) => {
-  const { isDeleting, handleClick, isBtnDisabled } = useBtnDeleteBoard(boardId);
+  const { isProcessing, handleClick, isBtnDisabled } = useBtnDeleteBoard(boardId);
 
   return (
     <Button
       disabled={isBtnDisabled}
-      loading={isDeleting}
+      loading={isProcessing}
       onClick={handleClick}
       color="red"
       variant="solid"

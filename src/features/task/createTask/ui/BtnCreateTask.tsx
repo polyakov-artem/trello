@@ -1,22 +1,26 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Button } from 'antd';
-import { type FC } from 'react';
+import { type FC, type PropsWithChildren } from 'react';
 import { useCreateTaskContext } from '../model/CreateTaskContext';
+import type { BaseButtonProps } from 'antd/es/button/button';
 
-export type BtnCreateTaskProps = PropsWithClassName;
+export type BtnCreateTaskProps = {
+  size?: BaseButtonProps['size'];
+} & PropsWithClassName &
+  PropsWithChildren;
 
-export const BtnCreateTask: FC<BtnCreateTaskProps> = ({ className }) => {
+export const BtnCreateTask: FC<BtnCreateTaskProps> = ({ className, children, size }) => {
   const { openModal } = useCreateTaskContext();
 
   return (
     <Button
-      size="large"
+      size={size}
       onClick={openModal}
       color="green"
       variant="solid"
       className={className}
       iconPosition={'end'}>
-      Create task
+      {children}
     </Button>
   );
 };

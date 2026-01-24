@@ -1,6 +1,6 @@
 import { useSessionStore } from '@/entities/session';
 import type { Session } from '@/shared/api/auth/authApi';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export const canLogoutGuard = (session: Session | undefined, isLoadingSession: boolean) =>
   !!session && !isLoadingSession;
@@ -15,5 +15,5 @@ export const useCanLogout = () => {
   const session = useSessionStore.use.value();
   const isLoading = useSessionStore.use.isLoading();
 
-  return canLogoutGuard(session, isLoading);
+  return useMemo(() => canLogoutGuard(session, isLoading), [isLoading, session]);
 };

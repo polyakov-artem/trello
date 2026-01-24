@@ -5,9 +5,9 @@ import {
   CreateBoardProvider,
   ModalCreateBoard,
 } from '@/features/board/createBoard';
-import { EditBoardProvider, ModalEditBoard } from '@/features/board/editBoard';
 import { BoardsTable } from '@/widgets/BoardsTable';
 import { AuthProtected } from '@/widgets/AuthProtected';
+import { EditBoardTitleProvider, ModalEditBoardTitle } from '@/features/board/editBoardTitle';
 
 const TITLE = 'Boards';
 
@@ -18,7 +18,7 @@ export const BoardsPage: FC = () => {
 
   return (
     <CreateBoardProvider>
-      <EditBoardProvider>
+      <EditBoardTitleProvider>
         <div className="container mx-auto p-4 grow flex">
           <div className="flex flex-col gap-6 grow">
             <h1 className="font-bold text-3xl text-center ">{TITLE}</h1>
@@ -34,9 +34,9 @@ export const BoardsPage: FC = () => {
           </div>
         </div>
 
-        <ModalEditBoard />
+        <ModalEditBoardTitle />
         <ModalCreateBoard />
-      </EditBoardProvider>
+      </EditBoardTitleProvider>
     </CreateBoardProvider>
   );
 };

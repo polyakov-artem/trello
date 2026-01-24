@@ -17,7 +17,7 @@ export const ModalCreateBoard: FC = () => {
     closeModal,
     isFormDisabled,
     isOpen,
-    isCreatingBoard,
+    isProcessing,
   } = useModalCreateBoard();
 
   const body = (
@@ -43,7 +43,7 @@ export const ModalCreateBoard: FC = () => {
   const buttons = (
     <>
       <Button
-        loading={isCreatingBoard}
+        loading={isProcessing}
         disabled={isFormDisabled}
         type="primary"
         onClick={handleSubmitBtnClick}>

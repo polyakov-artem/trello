@@ -1,29 +1,39 @@
-import { useBoardDeletionStore } from '@/entities/board';
+import { useBoardDeletionStore, useBoardsStore } from '@/entities/board';
 import { useSessionStore } from '@/entities/session';
 
 import type { Session } from '@/shared/api/auth/authApi';
 import { useCallback, useMemo } from 'react';
 
-export const canDeleteBoardGuard = (
-  session: Session | undefined,
-  isLoadingSession: boolean,
-  isDeletingBoard: boolean
-) => {
-  return !!session && !isDeletingBoard && !isLoadingSession;
+export type CanDeleteBoardGuardProps = {
+  session: Session | undefined;
+  isLoadingSession: boolean;
+  isDeletingBoard: boolean;
+  isLoadingBoards: boolean;
+};
+
+export const canDeleteBoardGuard = ({
+  session,
+  isLoadingSession,
+  isDeletingBoard,
+  isLoadingBoards,
+}: CanDeleteBoardGuardProps) => {
+  return !!session && !isDeletingBoard && !isLoadingSession && !isLoadingBoards;
 };
 
 export const useCanDeleteBoardFn = () => {
   const getSessionStoreState = useSessionStore.use.getState();
   const getDeletionStoreState = useBoardDeletionStore.use.getState();
+  const getBoardsState = useBoardsStore.use.getState();
 
   return useCallback(
     () =>
-      canDeleteBoardGuard(
-        getSessionStoreState().value,
-        getSessionStoreState().isLoading,
-        getDeletionStoreState().isLoading
-      ),
-    [getDeletionStoreState, getSessionStoreState]
+      canDeleteBoardGuard({
+        session: getSessionStoreState().value,
+        isLoadingSession: getSessionStoreState().isLoading,
+        isDeletingBoard: getDeletionStoreState().isLoading,
+        isLoadingBoards: getBoardsState().isLoading,
+      }),
+    [getBoardsState, getDeletionStoreState, getSessionStoreState]
   );
 };
 
@@ -31,9 +41,16 @@ export const useCanDeleteBoard = () => {
   const session = useSessionStore.use.value();
   const isLoadingSession = useSessionStore.use.isLoading();
   const isDeletingBoard = useBoardDeletionStore.use.isLoading();
+  const isLoadingBoards = useBoardsStore.use.isLoading();
 
   return useMemo(
-    () => canDeleteBoardGuard(session, isLoadingSession, isDeletingBoard),
-    [isDeletingBoard, isLoadingSession, session]
+    () =>
+      canDeleteBoardGuard({
+        session,
+        isLoadingSession,
+        isDeletingBoard,
+        isLoadingBoards,
+      }),
+    [isDeletingBoard, isLoadingBoards, isLoadingSession, session]
   );
 };

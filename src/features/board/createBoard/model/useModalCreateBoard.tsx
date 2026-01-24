@@ -22,7 +22,7 @@ export const useModalCreateBoard = () => {
   const [formError, setFormError] = useState('');
   const createBoard = useCreateBoard();
   const canCreateBoard = useCanCreateBoard();
-  const isCreatingBoard = useBoardCreationStore.use.isLoading();
+  const isProcessing = useBoardCreationStore.use.isLoading();
 
   const handleCloseModal = useCallback(() => {
     setFormError('');
@@ -81,8 +81,8 @@ export const useModalCreateBoard = () => {
       handleSubmit: formik.handleSubmit,
       handleSubmitBtnClick,
       closeModal: handleCloseModal,
-      isFormDisabled: !canCreateBoard,
-      isCreatingBoard,
+      isFormDisabled: !canCreateBoard || isProcessing,
+      isProcessing,
       isOpen,
     }),
     [
@@ -95,7 +95,7 @@ export const useModalCreateBoard = () => {
       handleCloseModal,
       handleInputChange,
       handleSubmitBtnClick,
-      isCreatingBoard,
+      isProcessing,
       isOpen,
     ]
   );

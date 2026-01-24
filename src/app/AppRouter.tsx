@@ -5,6 +5,7 @@ import { UsersPage } from '@/pages/users';
 import { Header } from '@/widgets/Header';
 import { TasksPage } from '@/pages/tasks';
 import { BoardsPage } from '@/pages/boards';
+import { DnDBoardPage } from '@/pages/dndBoard';
 
 const router = createBrowserRouter([
   {
@@ -29,7 +30,7 @@ const router = createBrowserRouter([
       },
       {
         path: ROUTER_PATHS.BOARD,
-        element: 'Board page',
+        element: <DnDBoardPage />,
       },
     ],
   },

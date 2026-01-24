@@ -1,18 +1,35 @@
-import { useUserCreationStore } from '@/entities/user';
-import { useCallback } from 'react';
+import { useUserCreationStore, useUsersStore } from '@/entities/user';
+import { useCallback, useMemo } from 'react';
 
-export const canCreateUserGuard = (isCreatingUser: boolean) => {
-  return !isCreatingUser;
+export type CanCreateUserGuardProps = {
+  isCreatingUser: boolean;
+  isLoadingUsers: boolean;
+};
+
+export const canCreateUserGuard = ({ isCreatingUser, isLoadingUsers }: CanCreateUserGuardProps) => {
+  return !isCreatingUser && !isLoadingUsers;
 };
 
 export const useCanCreateUser = () => {
-  const isLoading = useUserCreationStore.use.isLoading();
+  const isCreatingUser = useUserCreationStore.use.isLoading();
+  const isLoadingUsers = useUsersStore.use.isLoading();
 
-  return canCreateUserGuard(isLoading);
+  return useMemo(
+    () => canCreateUserGuard({ isCreatingUser, isLoadingUsers }),
+    [isCreatingUser, isLoadingUsers]
+  );
 };
 
 export const useCanCreateUserFn = () => {
-  const getState = useUserCreationStore.use.getState();
+  const getCreationStoreState = useUserCreationStore.use.getState();
+  const getUsersStoreState = useUsersStore.use.getState();
 
-  return useCallback(() => canCreateUserGuard(getState().isLoading), [getState]);
+  return useCallback(
+    () =>
+      canCreateUserGuard({
+        isCreatingUser: getCreationStoreState().isLoading,
+        isLoadingUsers: getUsersStoreState().isLoading,
+      }),
+    [getCreationStoreState, getUsersStoreState]
+  );
 };

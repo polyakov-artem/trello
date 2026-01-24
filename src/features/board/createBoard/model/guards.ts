@@ -1,28 +1,38 @@
-import { useBoardCreationStore } from '@/entities/board';
+import { useBoardCreationStore, useBoardsStore } from '@/entities/board';
 import { useSessionStore } from '@/entities/session';
 import type { Session } from '@/shared/api/auth/authApi';
 import { useCallback, useMemo } from 'react';
 
-export const canCreateBoardGuard = (
-  session: Session | undefined,
-  isLoadingSession: boolean,
-  isCreatingBoard: boolean
-) => {
-  return !!session && !isCreatingBoard && !isLoadingSession;
+export type CanCreateBoardGuardProps = {
+  session: Session | undefined;
+  isLoadingSession: boolean;
+  isCreatingBoard: boolean;
+  isLoadingBoards: boolean;
+};
+
+export const canCreateBoardGuard = ({
+  session,
+  isLoadingSession,
+  isCreatingBoard,
+  isLoadingBoards,
+}: CanCreateBoardGuardProps) => {
+  return !!session && !isCreatingBoard && !isLoadingSession && !isLoadingBoards;
 };
 
 export const useCanCreateBoardFn = () => {
   const getSessionState = useSessionStore.use.getState();
   const getBoardCreationState = useBoardCreationStore.use.getState();
+  const getBoardsState = useBoardsStore.use.getState();
 
   return useCallback(
     () =>
-      canCreateBoardGuard(
-        getSessionState().value,
-        getSessionState().isLoading,
-        getBoardCreationState().isLoading
-      ),
-    [getBoardCreationState, getSessionState]
+      canCreateBoardGuard({
+        session: getSessionState().value,
+        isLoadingSession: getSessionState().isLoading,
+        isCreatingBoard: getBoardCreationState().isLoading,
+        isLoadingBoards: getBoardsState().isLoading,
+      }),
+    [getBoardCreationState, getBoardsState, getSessionState]
   );
 };
 
@@ -30,9 +40,16 @@ export const useCanCreateBoard = () => {
   const session = useSessionStore.use.value();
   const isLoadingSession = useSessionStore.use.isLoading();
   const isCreatingBoard = useBoardCreationStore.use.isLoading();
+  const isLoadingBoards = useBoardsStore.use.isLoading();
 
   return useMemo(
-    () => canCreateBoardGuard(session, isLoadingSession, isCreatingBoard),
-    [isCreatingBoard, isLoadingSession, session]
+    () =>
+      canCreateBoardGuard({
+        session,
+        isLoadingSession,
+        isCreatingBoard,
+        isLoadingBoards,
+      }),
+    [isCreatingBoard, isLoadingBoards, isLoadingSession, session]
   );
 };

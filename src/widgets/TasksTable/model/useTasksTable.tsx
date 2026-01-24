@@ -1,15 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { type GetProp, type TableProps } from 'antd';
-import type { PropsWithClassName } from '@/shared/types/types';
 import type { Task } from '@/shared/api/task/taskApi';
 import { BtnDeleteTask } from '@/features/task/deleteTask';
-import { BtnUpdateTask } from '@/features/task/updateTask';
-
-export type TasksTableProps = PropsWithClassName & {
-  isLoading?: boolean;
-  errorMsg?: string;
-  tasks?: Task[];
-};
+import { BtnEditTask } from '@/features/task/EditTask';
 
 export type ColumnsType<T extends object> = GetProp<TableProps<T>, 'columns'>;
 
@@ -21,7 +14,7 @@ export type DataType = {
 export const BTN_DELETE_TEXT = 'Delete';
 export const BTN_EDIT_TEXT = 'Edit';
 
-export const useTasksTable = ({ tasks, className, isLoading, errorMsg }: TasksTableProps) => {
+export const useTasksTable = (tasks?: Task[]) => {
   const dataSource = useMemo(() => {
     return (tasks || []).map((task, index) => ({
       ...task,
@@ -34,7 +27,7 @@ export const useTasksTable = ({ tasks, className, isLoading, errorMsg }: TasksTa
     (taskId: string) => (
       <div className="inline-flex flex-wrap gap-2 items-center">
         <BtnDeleteTask taskId={taskId}>{BTN_DELETE_TEXT}</BtnDeleteTask>
-        <BtnUpdateTask taskId={taskId}>{BTN_EDIT_TEXT}</BtnUpdateTask>
+        <BtnEditTask taskId={taskId}>{BTN_EDIT_TEXT}</BtnEditTask>
       </div>
     ),
     []
@@ -77,10 +70,7 @@ export const useTasksTable = ({ tasks, className, isLoading, errorMsg }: TasksTa
     () => ({
       columns,
       dataSource,
-      className,
-      isLoading,
-      errorMsg,
     }),
-    [className, columns, dataSource, errorMsg, isLoading]
+    [columns, dataSource]
   );
 };
