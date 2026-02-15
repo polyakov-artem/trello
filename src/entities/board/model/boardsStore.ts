@@ -50,6 +50,7 @@ export type BoardsStoreState = {
     upsertBoard: (board: Board) => void;
     updateBoard: (board: Board) => void;
     removeBoard: (id: string) => void;
+    removeTasks: (tasksIds: string[]) => void;
   };
 };
 
@@ -125,6 +126,37 @@ export const createBoardsStore = () => {
             },
           };
         }),
+
+      removeTasks: (tasksIds: string[]) => {
+        const boardsIds = get().value.ids;
+        const boardsEntities = get().value.entities;
+
+        const nextEntities = boardsIds.reduce(
+          (acc, boardId) => {
+            const board = boardsEntities[boardId];
+
+            acc[boardId] = {
+              ...board,
+              columns: board.columns.map((column) => {
+                return {
+                  ...column,
+                  tasksIds: column.tasksIds.filter((id) => !tasksIds.includes(id)),
+                };
+              }),
+            };
+
+            return acc;
+          },
+          {} as Record<string, Board>
+        );
+
+        set({
+          value: {
+            entities: nextEntities,
+            ids: boardsIds,
+          },
+        });
+      },
     },
   }));
 };

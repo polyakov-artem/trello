@@ -1,6 +1,6 @@
 import { useSessionStore } from '@/entities/session';
 import { UserPreview, useSessionUserStore } from '@/entities/user';
-import { ROUTER_PATHS } from '@/shared/constants/routes';
+import { ROUTER_PATHS } from '@/shared/config/routes';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Logo } from '@/shared/ui/Logo/Logo';
 import { NavLinks } from '@/shared/ui/NavLinks/NavLinks';

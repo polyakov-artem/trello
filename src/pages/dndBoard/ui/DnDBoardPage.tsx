@@ -20,20 +20,28 @@ export const DnDBoardPage: FC = () => {
   const tasksError = useTasksStore.use.error();
   const error = tasksError?.message || boardError?.message;
   const isUpdating = useBoardUpdateStore.use.isLoading();
-  const unassignedTasks = useMemo(() => {
-    const result: Task[] = [];
+
+  const { unassignedTasksIds, tasksMap } = useMemo(() => {
+    const tasksMap: Record<string, Task> = {};
+    const unassignedTasksMap: Record<string, Task> = {};
 
     tasks?.forEach((task) => {
-      const found = boards?.some((board) => {
-        return board.columns.some((column) => column.tasksIds.includes(task.id));
-      });
+      tasksMap[task.id] = task;
+      unassignedTasksMap[task.id] = task;
+    });
 
-      if (!found) {
-        result.push(task);
+    boards?.forEach((board) => {
+      for (const column of board.columns) {
+        for (const taskId of column.tasksIds) {
+          delete unassignedTasksMap[taskId];
+        }
       }
     });
 
-    return result;
+    return {
+      unassignedTasksIds: Object.keys(unassignedTasksMap),
+      tasksMap,
+    };
   }, [boards, tasks]);
 
   return (
@@ -49,9 +57,9 @@ export const DnDBoardPage: FC = () => {
             ) : (
               <DnDBoard
                 board={board}
-                tasks={tasks}
                 isUpdating={isUpdating}
-                unassignedTasks={unassignedTasks}
+                tasksMap={tasksMap}
+                unassignedTasksIds={unassignedTasksIds}
               />
             )}
           </AuthProtected>

@@ -31,9 +31,13 @@ export const taskApi = {
     });
   },
 
-  async deleteTask(sessionId: string, taskId: string, signal?: AbortSignal) {
-    return await safeFetch<{ success: true }>(`${API_URL}/tasks/${taskId}?sessionId=${sessionId}`, {
-      method: 'DELETE',
+  async deleteTasks(sessionId: string, tasksIds: string[], signal?: AbortSignal) {
+    return await safeFetch<{ success: true }>(`${API_URL}/tasks/delete?sessionId=${sessionId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tasksIds }),
       signal,
     });
   },

@@ -61,6 +61,10 @@ type CreateBoardColumnBody = {
   title?: string;
 };
 
+type DeleteTasksBody = {
+  tasksIds: string[];
+};
+
 const BOARD_ID = 'boardId';
 const COLUMN_ID = 'columnId';
 const TASK_ID = 'taskId';
@@ -260,6 +264,46 @@ async function requireTask(req: Request, res: Response) {
   return { task, tasks, session };
 }
 
+async function requireTasksArray(req: Request, res: Response) {
+  const { session } = await requireSession(req, res);
+  if (!session) return {};
+
+  const { tasksIds } = req.body as DeleteTasksBody;
+  const tasks = await db.tasks();
+
+  let notExists = false;
+  let notBelongsToUser = false;
+  const requiredTasks = [];
+
+  for (const taskId of tasksIds) {
+    const task = tasks.find((t) => t.id === taskId);
+
+    if (!task) {
+      notExists = true;
+      break;
+    }
+
+    if (task.authorId !== session.userId) {
+      notBelongsToUser = true;
+      break;
+    }
+
+    requiredTasks.push(task);
+  }
+
+  if (notExists) {
+    res.status(404).json({ error: ERROR_TASK_NOT_FOUND });
+    return {};
+  }
+
+  if (notBelongsToUser) {
+    res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+    return {};
+  }
+
+  return { tasks, requiredTasks, requiredTasksIds: tasksIds, session };
+}
+
 const createBoardColumn = (title: string) => ({
   title,
   tasksIds: [],
@@ -404,13 +448,23 @@ app.put(`/tasks/:${TASK_ID}`, async (req, res) => {
   res.json({ data: updatedTask });
 });
 
-app.delete(`/tasks/:${TASK_ID}`, async (req, res) => {
+app.post(`/tasks/delete`, async (req, res) => {
   await delay();
 
-  const { task, tasks } = await requireTask(req, res);
-  if (!task) return;
+  const { requiredTasksIds, tasks } = await requireTasksArray(req, res);
+  if (!requiredTasksIds) return;
 
-  await db.saveTasks(tasks.filter((t) => t.id !== task.id));
+  const boards = await db.boards();
+
+  boards.forEach((b) => {
+    b.columns.forEach((c) => {
+      c.tasksIds = c.tasksIds.filter((t) => !requiredTasksIds.includes(t));
+    });
+  });
+
+  const updatedTasks = tasks.filter((t) => !requiredTasksIds.includes(t.id));
+  await db.saveBoards(boards);
+  await db.saveTasks(updatedTasks);
   res.json({ data: { success: true } });
 });
 

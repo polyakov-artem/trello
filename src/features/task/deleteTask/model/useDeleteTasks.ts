@@ -3,18 +3,22 @@ import { useTasksStore, useTaskDeletionStore } from '@/entities/task';
 import { taskApi } from '@/shared/api/task/taskApi';
 import { useCallback } from 'react';
 import { useCanDeleteTaskFn } from './guards';
+import { useBoardsStoreActions } from '@/entities/board';
 
-export const useDeleteTask = () => {
+export const useDeleteTasks = () => {
   const getSessionStoreState = useSessionStore.use.getState();
   const canDeleteTaskFn = useCanDeleteTaskFn();
   const setCancelRef = useTaskDeletionStore.use.setCancelReqFn();
   const setTaskDeletionState = useTaskDeletionStore.use.setState();
-
+  const { removeTasks } = useBoardsStoreActions();
   const setTasksState = useTasksStore.use.setState();
 
-  const deleteTask = useCallback(
-    async (taskId: string, onStart?: () => void, onEnd?: () => void) => {
-      if (!canDeleteTaskFn()) {
+  return useCallback(
+    async (value: string[] | string, onStart?: () => void, onEnd?: () => void) => {
+      const taskIds = Array.isArray(value) ? value : [value];
+      console.log('taskIds', taskIds);
+
+      if (!canDeleteTaskFn() || !taskIds.length) {
         return;
       }
 
@@ -27,18 +31,18 @@ export const useDeleteTask = () => {
 
       const sessionId = getSessionStoreState().value?.sessionId || '';
 
-      const result = await taskApi.deleteTask(sessionId, taskId, controller.signal);
+      const result = await taskApi.deleteTasks(sessionId, taskIds, controller.signal);
       const isAborted = controller.signal.aborted;
 
       if (!isAborted) {
         if (result.ok) {
           setTasksState((prevState) => {
             return {
-              value: prevState.value?.filter((task) => task.id !== taskId),
+              value: prevState.value?.filter((task) => !taskIds.includes(task.id)),
             };
           });
-        } else {
-          setTaskDeletionState({ error: result.error });
+
+          removeTasks(taskIds);
         }
       }
 
@@ -47,8 +51,13 @@ export const useDeleteTask = () => {
       onEnd?.();
       return isAborted ? undefined : result;
     },
-    [canDeleteTaskFn, getSessionStoreState, setCancelRef, setTaskDeletionState, setTasksState]
+    [
+      canDeleteTaskFn,
+      getSessionStoreState,
+      removeTasks,
+      setCancelRef,
+      setTaskDeletionState,
+      setTasksState,
+    ]
   );
-
-  return deleteTask;
 };

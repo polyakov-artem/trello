@@ -12,17 +12,18 @@ export type DeleteBoardColumnProps = {
 };
 
 export const useDeleteBoardColumn = () => {
-  const sessionId = useSessionStore.use.value()?.sessionId || '';
+  const getSessionStoreState = useSessionStore.use.getState();
   const canDeleteBoardColumn = useCanDeleteBoardColumnFn();
   const updateBoard = useUpdateBoard();
 
   return useCallback(
     async ({ boardId, columnId, onStart, onEnd }: DeleteBoardColumnProps) => {
+      const sessionId = getSessionStoreState().value?.sessionId || '';
       const updateFn = (signal?: AbortSignal) =>
         boardApi.deleteBoardColumn({ sessionId, boardId, columnId, signal });
 
       return await updateBoard({ onStart, onEnd, updateFn, guardFn: canDeleteBoardColumn });
     },
-    [updateBoard, canDeleteBoardColumn, sessionId]
+    [getSessionStoreState, updateBoard, canDeleteBoardColumn]
   );
 };

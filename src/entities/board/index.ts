@@ -18,3 +18,4 @@ export {
 } from './model/boardsSelectors';
 
 export { useUpdateBoard } from './model/useUpdateBoard';
+export { UNASSIGNED_TASKS_COLUMN_ID } from './config/columnsIds';

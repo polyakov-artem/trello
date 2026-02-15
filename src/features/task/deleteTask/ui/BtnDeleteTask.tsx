@@ -1,29 +1,32 @@
-import { type FC, type PropsWithChildren } from 'react';
-import type { PropsWithClassName } from '@/shared/types/types';
+import { type FC } from 'react';
 import { Button } from 'antd';
-import { useBtnDeleteTask } from '../model/useBtnDeleteTask';
 import type { BaseButtonProps } from 'antd/es/button/button';
+import { useBtnDeleteTasksBase } from '../model/useBtnDeleteTasksBase';
+import { useCanDeleteTask } from '../model/guards';
 
-export type BtnDeleteTaskProps = {
+type UseBtnDeleteTaskProps = {
   taskId: string;
-  size?: BaseButtonProps['size'];
-} & PropsWithClassName &
-  PropsWithChildren;
+};
 
-export const BtnDeleteTask: FC<BtnDeleteTaskProps> = ({ taskId, className, children, size }) => {
-  const { isDeleting, handleClick, isBtnDisabled } = useBtnDeleteTask(taskId);
+const useBtnDeleteTask = ({ taskId: tasksId }: UseBtnDeleteTaskProps) => {
+  const { isLoading, handleClick } = useBtnDeleteTasksBase(tasksId);
+  const isDisabled = !useCanDeleteTask();
+  return { isLoading, handleClick, isDisabled };
+};
 
+export type BtnDeleteTaskProps = BaseButtonProps & UseBtnDeleteTaskProps;
+
+export const BtnDeleteTask: FC<BtnDeleteTaskProps> = (props) => {
+  const { isLoading, handleClick, isDisabled } = useBtnDeleteTask(props);
   return (
     <Button
-      disabled={isBtnDisabled}
-      loading={isDeleting}
-      size={size}
-      onClick={handleClick}
       color="red"
       variant="solid"
-      className={className}
-      iconPosition={'end'}>
-      {children}
-    </Button>
+      iconPosition={'end'}
+      {...props}
+      onClick={handleClick}
+      disabled={isDisabled}
+      loading={isLoading}
+    />
   );
 };

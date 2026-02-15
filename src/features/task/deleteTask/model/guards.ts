@@ -1,3 +1,9 @@
+import {
+  useBoardDeletionStore,
+  useBoardsIsLoading,
+  useBoardsStore,
+  useBoardUpdateStore,
+} from '@/entities/board';
 import { useSessionStore } from '@/entities/session';
 import { useTaskDeletionStore, useTasksStore } from '@/entities/task';
 import type { Session } from '@/shared/api/auth/authApi';
@@ -8,6 +14,9 @@ export type CanDeleteTaskGuardProps = {
   isLoadingSession: boolean;
   isDeletingTask: boolean;
   isLoadingTasks: boolean;
+  isLoadingBoards: boolean;
+  isUpdatingBoard: boolean;
+  isDeletingBoard: boolean;
 };
 
 export const canDeleteTaskGuard = ({
@@ -15,14 +24,28 @@ export const canDeleteTaskGuard = ({
   isLoadingSession,
   isDeletingTask,
   isLoadingTasks,
+  isLoadingBoards,
+  isUpdatingBoard,
+  isDeletingBoard,
 }: CanDeleteTaskGuardProps) => {
-  return !!session && !isDeletingTask && !isLoadingSession && !isLoadingTasks;
+  return (
+    !!session &&
+    !isLoadingSession &&
+    !isDeletingTask &&
+    !isLoadingTasks &&
+    !isLoadingBoards &&
+    !isUpdatingBoard &&
+    !isDeletingBoard
+  );
 };
 
 export const useCanDeleteTaskFn = () => {
   const getSessionStoreState = useSessionStore.use.getState();
   const getDeletionStoreState = useTaskDeletionStore.use.getState();
   const getTasksStoreState = useTasksStore.use.getState();
+  const getBoardUpdateState = useBoardUpdateStore.use.getState();
+  const getBoardDeletionState = useBoardDeletionStore.use.getState();
+  const getBoardsState = useBoardsStore.getState;
 
   return useCallback(
     () =>
@@ -31,8 +54,18 @@ export const useCanDeleteTaskFn = () => {
         isLoadingSession: getSessionStoreState().isLoading,
         isDeletingTask: getDeletionStoreState().isLoading,
         isLoadingTasks: getTasksStoreState().isLoading,
+        isUpdatingBoard: getBoardUpdateState().isLoading,
+        isDeletingBoard: getBoardDeletionState().isLoading,
+        isLoadingBoards: getBoardsState().isLoading,
       }),
-    [getDeletionStoreState, getSessionStoreState, getTasksStoreState]
+    [
+      getBoardDeletionState,
+      getBoardUpdateState,
+      getBoardsState,
+      getDeletionStoreState,
+      getSessionStoreState,
+      getTasksStoreState,
+    ]
   );
 };
 
@@ -41,6 +74,9 @@ export const useCanDeleteTask = () => {
   const isLoadingSession = useSessionStore.use.isLoading();
   const isDeletingTask = useTaskDeletionStore.use.isLoading();
   const isLoadingTasks = useTasksStore.use.isLoading();
+  const isUpdatingBoard = useBoardUpdateStore.use.isLoading();
+  const isDeletingBoard = useBoardDeletionStore.use.isLoading();
+  const isLoadingBoards = useBoardsIsLoading();
 
   return useMemo(
     () =>
@@ -49,7 +85,18 @@ export const useCanDeleteTask = () => {
         isLoadingSession,
         isDeletingTask,
         isLoadingTasks,
+        isUpdatingBoard,
+        isDeletingBoard,
+        isLoadingBoards,
       }),
-    [isDeletingTask, isLoadingSession, isLoadingTasks, session]
+    [
+      isDeletingBoard,
+      isDeletingTask,
+      isLoadingBoards,
+      isLoadingSession,
+      isLoadingTasks,
+      isUpdatingBoard,
+      session,
+    ]
   );
 };

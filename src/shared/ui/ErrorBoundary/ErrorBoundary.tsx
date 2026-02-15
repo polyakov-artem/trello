@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Component, type ErrorInfo } from 'react';
-import { errors } from '@/shared/constants/errorMsgs';
+import { errors } from '@/shared/config/errorMsgs';
 import { ErrorBanner } from '../ErrorBanner/ErrorBanner';
 
 export type ErrorBoundaryProps = PropsWithChildren & {

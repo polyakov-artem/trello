@@ -1,5 +1,5 @@
 import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
-import { ROUTER_PATHS } from '@/shared/constants/routes';
+import { ROUTER_PATHS } from '@/shared/config/routes';
 import { RootLayout } from '@/shared/ui/layouts/RootLayout/RootLayout';
 import { UsersPage } from '@/pages/users';
 import { Header } from '@/widgets/Header';

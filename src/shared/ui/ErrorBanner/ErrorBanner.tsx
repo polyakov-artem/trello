@@ -1,4 +1,4 @@
-import { errorAdvices } from '@/shared/constants/errorMsgs';
+import { errorAdvices } from '@/shared/config/errorMsgs';
 import { reloadPage } from '@/shared/lib/locationUtils';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { CloseCircleOutlined } from '@ant-design/icons';
