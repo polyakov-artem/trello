@@ -7,7 +7,6 @@ export type Board = {
   authorId: string;
   title: string;
   columns: BoardColumn[];
-  unassignedTasksColumn: BoardColumn;
 };
 
 export type BoardColumn = {
@@ -59,6 +58,7 @@ export type DeleteBoardColumnProps = {
   sessionId: string;
   boardId: string;
   columnId: string;
+  deleteTasks?: boolean;
   signal?: AbortSignal;
 };
 
@@ -77,6 +77,38 @@ export type CreateColumnTaskProps = {
   taskDraft: TaskDraft;
   signal?: AbortSignal;
 };
+
+export enum InsertionType {
+  swap = 'swap',
+  before = 'before',
+  append = 'append',
+}
+
+export type MoveBoardTaskBodyProps = {
+  srcColumnId: string;
+  targetColumnId: string;
+  srcTaskId: string;
+  targetTaskId?: string;
+  operationType: InsertionType;
+};
+
+export type MoveBoardTaskProps = {
+  boardId: string;
+  sessionId: string;
+  signal?: AbortSignal;
+} & MoveBoardTaskBodyProps;
+
+export type MoveBoardColumnBodyProps = {
+  srcColumnId: string;
+  targetColumnId: string;
+  operationType: InsertionType;
+};
+
+export type MoveBoardColumnProps = {
+  boardId: string;
+  sessionId: string;
+  signal?: AbortSignal;
+} & MoveBoardColumnBodyProps;
 
 export const boardApi = {
   async getBoards({ sessionId, signal }: GetBoardsProps) {
@@ -128,9 +160,15 @@ export const boardApi = {
     });
   },
 
-  async deleteBoardColumn({ sessionId, boardId, columnId, signal }: DeleteBoardColumnProps) {
-    return await safeFetch<Board>(
-      `${API_URL}/boards/${boardId}/columns/${columnId}?sessionId=${sessionId}`,
+  async deleteBoardColumn({
+    sessionId,
+    boardId,
+    columnId,
+    signal,
+    deleteTasks,
+  }: DeleteBoardColumnProps) {
+    return await safeFetch<{ board: Board; tasks: Task[] }>(
+      `${API_URL}/boards/${boardId}/columns/${columnId}?sessionId=${sessionId}${deleteTasks ? '&deleteTasks=true' : ''}`,
       {
         method: 'DELETE',
         signal,
@@ -175,6 +213,34 @@ export const boardApi = {
         },
 
         body: JSON.stringify(taskDraft),
+        signal,
+      }
+    );
+  },
+
+  async moveBoardTask({ sessionId, signal, boardId, ...bodyProps }: MoveBoardTaskProps) {
+    return await safeFetch<Board>(
+      `${API_URL}/boards/${boardId}/move/tasks?sessionId=${sessionId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bodyProps),
+        signal,
+      }
+    );
+  },
+
+  async moveBoardColumn({ sessionId, signal, boardId, ...bodyProps }: MoveBoardColumnProps) {
+    return await safeFetch<Board>(
+      `${API_URL}/boards/${boardId}/move/columns?sessionId=${sessionId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bodyProps),
         signal,
       }
     );

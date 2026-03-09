@@ -8,6 +8,7 @@ export type BtnDeleteBoardColumnProps = {
   boardId: string;
   columnId: string;
   size?: BaseButtonProps['size'];
+  columnHasTasks: boolean;
 } & PropsWithClassName &
   PropsWithChildren;
 
@@ -17,8 +18,13 @@ export const BtnDeleteBoardColumn: FC<BtnDeleteBoardColumnProps> = ({
   columnId,
   size,
   children,
+  columnHasTasks,
 }) => {
-  const { isProcessing, handleClick, isDisabled } = useBtnDeleteBoardColumn(boardId, columnId);
+  const { isProcessing, handleClick, isDisabled } = useBtnDeleteBoardColumn(
+    boardId,
+    columnId,
+    columnHasTasks
+  );
 
   return (
     <Button

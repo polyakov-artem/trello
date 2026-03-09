@@ -15,7 +15,6 @@ export const useLoginWithSavedSession = () => {
     setSessionState({ isLoading: true, error: undefined });
 
     const savedSession = await sessionRepository.loadSession();
-    console.log('savedSession', savedSession);
 
     if (!savedSession) {
       setSessionState({ isLoading: false });

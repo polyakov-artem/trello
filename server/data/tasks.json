@@ -1,0 +1,310 @@
+[
+  {
+    "id": "DmFW3Pxom66lABJsGrxZ2",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Research Market",
+    "description": "Quick analysis of current market demands",
+    "completed": false
+  },
+  {
+    "id": "oGSjlnVcDpLh9EjgiK9wF",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Create User Survey",
+    "description": "Prepare questions for customer feedback",
+    "completed": true
+  },
+  {
+    "id": "zDRekvrGFKKK3wmdui-SB",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Plan Content Calendar",
+    "description": "Schedule posts for next quarter",
+    "completed": true
+  },
+  {
+    "id": "MwCCAANgG-GWPzZusSuCm",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Design Homepage",
+    "description": "Redesign main page layout",
+    "completed": false
+  },
+  {
+    "id": "CCCywmqDcT8aSBXO1y8TP",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Write Blog Posts",
+    "description": "Create 5 articles for the website",
+    "completed": true
+  },
+  {
+    "id": "gievPtyJ8PVWm5C8kyVgW",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Update Product Descriptions",
+    "description": "Revise all product listings",
+    "completed": true
+  },
+  {
+    "id": "UWwfyYuNtemtdLCZ8_qvp",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Fix Login Bug",
+    "description": "Resolve authentication issues",
+    "completed": true
+  },
+  {
+    "id": "Ba0RN4GPZzj-Tgdc3s2Y5",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Optimize Database",
+    "description": "Improve data retrieval speed",
+    "completed": true
+  },
+  {
+    "id": "RDIfTbxmfGrNZyfW9N_in",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Add Payment Gateway",
+    "description": "Integrate new payment system",
+    "completed": false
+  },
+  {
+    "id": "e7qJ7vNR95wEGQ7dUih8G",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "UI/UX Testing",
+    "description": "Check user interface usability",
+    "completed": false
+  },
+  {
+    "id": "-kyUTpAVzryFgY5AyzeO0",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Performance Testing",
+    "description": "Monitor system load times",
+    "completed": true
+  },
+  {
+    "id": "wl_y82fHmsnxTaXYsz7hy",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Security Audit",
+    "description": "Review data protection measures",
+    "completed": false
+  },
+  {
+    "id": "aOOmM4kNfXg1s4REk69BK",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Launch Campaign",
+    "description": "Started social media promotion",
+    "completed": true
+  },
+  {
+    "id": "8btTef4AhD95N3ns_du3d",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Release Update",
+    "description": "Deployed new features",
+    "completed": true
+  },
+  {
+    "id": "cgllliAc69NQxDrWZ7k0N",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Client Training",
+    "description": "Conducted user tutorials",
+    "completed": true
+  },
+  {
+    "id": "nE21VC165ToO6ojU4R_2H",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Brand Identity Refresh",
+    "description": "Update company logo and visual style",
+    "completed": false
+  },
+  {
+    "id": "v1BAbPVYhTjR8E7AYUBb-",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Customer Onboarding Process",
+    "description": "Create new user welcome sequence",
+    "completed": false
+  },
+  {
+    "id": "MEls1XyooZDrb4yc06_Fg",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Social Media Audit",
+    "description": "Analyze current social media performance",
+    "completed": false
+  },
+  {
+    "id": "82ucoKhUdxdc2zn6ZEhIs",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Team Training Program",
+    "description": "Develop employee skill development plan",
+    "completed": false
+  },
+  {
+    "id": "m6CStUDKR_HbjTvEfK6J-",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Feature Prioritization",
+    "description": "Evaluate new feature requests",
+    "completed": false
+  },
+  {
+    "id": "_mw8LtwQEuV5_6eWTvt9M",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Inventory Management",
+    "description": "Optimize stock control system",
+    "completed": false
+  },
+  {
+    "id": "e1sqwaL-fFUWsom6jJzAf",
+    "authorId": "ZSOsdkhJKWFtAu2-ff3MX",
+    "title": "Website Analytics",
+    "description": "Set up tracking and reporting",
+    "completed": false
+  },
+  {
+    "id": "1DmFW3Pxom66lABJsGrxZ2",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Research Market",
+    "description": "Quick analysis of current market demands",
+    "completed": false
+  },
+  {
+    "id": "1oGSjlnVcDpLh9EjgiK9wF",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Create User Survey",
+    "description": "Prepare questions for customer feedback",
+    "completed": true
+  },
+  {
+    "id": "1zDRekvrGFKKK3wmdui-SB",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Plan Content Calendar",
+    "description": "Schedule posts for next quarter",
+    "completed": true
+  },
+  {
+    "id": "1MwCCAANgG-GWPzZusSuCm",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Design Homepage",
+    "description": "Redesign main page layout",
+    "completed": false
+  },
+  {
+    "id": "1CCCywmqDcT8aSBXO1y8TP",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Write Blog Posts",
+    "description": "Create 5 articles for the website",
+    "completed": true
+  },
+  {
+    "id": "1gievPtyJ8PVWm5C8kyVgW",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Update Product Descriptions",
+    "description": "Revise all product listings",
+    "completed": false
+  },
+  {
+    "id": "1UWwfyYuNtemtdLCZ8_qvp",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Fix Login Bug",
+    "description": "Resolve authentication issues",
+    "completed": true
+  },
+  {
+    "id": "1Ba0RN4GPZzj-Tgdc3s2Y5",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Optimize Database",
+    "description": "Improve data retrieval speed",
+    "completed": true
+  },
+  {
+    "id": "1RDIfTbxmfGrNZyfW9N_in",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Add Payment Gateway",
+    "description": "Integrate new payment system",
+    "completed": false
+  },
+  {
+    "id": "1e7qJ7vNR95wEGQ7dUih8G",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "UI/UX Testing",
+    "description": "Check user interface usability",
+    "completed": false
+  },
+  {
+    "id": "1-kyUTpAVzryFgY5AyzeO0",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Performance Testing",
+    "description": "Monitor system load times",
+    "completed": true
+  },
+  {
+    "id": "1wl_y82fHmsnxTaXYsz7hy",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Security Audit",
+    "description": "Review data protection measures",
+    "completed": false
+  },
+  {
+    "id": "1aOOmM4kNfXg1s4REk69BK",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Launch Campaign",
+    "description": "Started social media promotion",
+    "completed": true
+  },
+  {
+    "id": "18btTef4AhD95N3ns_du3d",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Release Update",
+    "description": "Deployed new features",
+    "completed": true
+  },
+  {
+    "id": "1cgllliAc69NQxDrWZ7k0N",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Client Training",
+    "description": "Conducted user tutorials",
+    "completed": true
+  },
+  {
+    "id": "1nE21VC165ToO6ojU4R_2H",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Brand Identity Refresh",
+    "description": "Update company logo and visual style",
+    "completed": false
+  },
+  {
+    "id": "1v1BAbPVYhTjR8E7AYUBb-",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Customer Onboarding Process",
+    "description": "Create new user welcome sequence",
+    "completed": false
+  },
+  {
+    "id": "1MEls1XyooZDrb4yc06_Fg",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Social Media Audit",
+    "description": "Analyze current social media performance",
+    "completed": false
+  },
+  {
+    "id": "182ucoKhUdxdc2zn6ZEhIs",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Team Training Program",
+    "description": "Develop employee skill development plan",
+    "completed": false
+  },
+  {
+    "id": "1m6CStUDKR_HbjTvEfK6J-",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Feature Prioritization",
+    "description": "Evaluate new feature requests",
+    "completed": false
+  },
+  {
+    "id": "1_mw8LtwQEuV5_6eWTvt9M",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Inventory Management",
+    "description": "Optimize stock control system",
+    "completed": false
+  },
+  {
+    "id": "1e1sqwaL-fFUWsom6jJzAf",
+    "authorId": "pxJWGPYuvh1R988Wd6EZ2",
+    "title": "Website Analytics",
+    "description": "Set up tracking and reporting",
+    "completed": false
+  }
+]

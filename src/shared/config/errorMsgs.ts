@@ -5,4 +5,5 @@ export const errors = {
 
 export const errorAdvices = {
   tryAgain: 'Please try again later',
+  logout: 'Please log out and log in again',
 };

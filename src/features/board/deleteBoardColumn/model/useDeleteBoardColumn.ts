@@ -2,28 +2,76 @@ import { useSessionStore } from '@/entities/session';
 import { boardApi } from '@/shared/api/board/boardApi';
 import { useCallback } from 'react';
 import { useCanDeleteBoardColumnFn } from './guards';
-import { useUpdateBoard } from '@/entities/board';
+import { useBoardsStoreActions, useBoardUpdateStore } from '@/entities/board';
+import { useTaskDeletionStore, useTasksStore } from '@/entities/task';
 
 export type DeleteBoardColumnProps = {
   boardId: string;
   columnId: string;
+  deleteTasks: boolean;
   onStart?: () => void;
   onEnd?: () => void;
 };
 
 export const useDeleteBoardColumn = () => {
-  const getSessionStoreState = useSessionStore.use.getState();
+  const getSessionState = useSessionStore.use.getState();
   const canDeleteBoardColumn = useCanDeleteBoardColumnFn();
-  const updateBoard = useUpdateBoard();
+  const setTaskDeletionStoreState = useTaskDeletionStore.use.setState();
+  const setBoardUpdateState = useBoardUpdateStore.use.setState();
+  const setBoardUpdateCancelReqFn = useBoardUpdateStore.use.setCancelReqFn();
+  const setTasksState = useTasksStore.use.setState();
+  const { updateBoard } = useBoardsStoreActions();
 
   return useCallback(
-    async ({ boardId, columnId, onStart, onEnd }: DeleteBoardColumnProps) => {
-      const sessionId = getSessionStoreState().value?.sessionId || '';
-      const updateFn = (signal?: AbortSignal) =>
-        boardApi.deleteBoardColumn({ sessionId, boardId, columnId, signal });
+    async ({ deleteTasks, onStart, onEnd, boardId, columnId }: DeleteBoardColumnProps) => {
+      if (!canDeleteBoardColumn()) {
+        return;
+      }
 
-      return await updateBoard({ onStart, onEnd, updateFn, guardFn: canDeleteBoardColumn });
+      onStart?.();
+
+      setBoardUpdateState({ isLoading: true, error: undefined });
+      setTaskDeletionStoreState({ isLoading: true, error: undefined });
+
+      const controller = new AbortController();
+      setBoardUpdateCancelReqFn(() => controller.abort());
+
+      const sessionId = getSessionState().value?.sessionId || '';
+
+      const result = await boardApi.deleteBoardColumn({
+        sessionId,
+        boardId,
+        columnId,
+        signal: controller.signal,
+        deleteTasks,
+      });
+
+      const isAborted = controller.signal.aborted;
+
+      if (!isAborted) {
+        if (result.ok) {
+          const { tasks, board } = result.data;
+          setTasksState({ value: tasks });
+          updateBoard(board);
+        } else {
+          setBoardUpdateState({ error: result.error });
+        }
+      }
+
+      setTaskDeletionStoreState({ isLoading: false });
+      setBoardUpdateState({ isLoading: false });
+      onEnd?.();
+
+      return isAborted ? undefined : result;
     },
-    [getSessionStoreState, updateBoard, canDeleteBoardColumn]
+    [
+      canDeleteBoardColumn,
+      getSessionState,
+      setBoardUpdateCancelReqFn,
+      setBoardUpdateState,
+      setTaskDeletionStoreState,
+      setTasksState,
+      updateBoard,
+    ]
   );
 };

@@ -1,6 +1,7 @@
 import { errorNames, type FetchError } from '@/shared/lib/safeFetch';
 import { useBoardsStore } from './boardsStore';
 import { useMemo } from 'react';
+import type { Board } from '@/shared/api/board/boardApi';
 
 const boardNotFoundError: FetchError = { message: 'Board was not found', name: errorNames.unknown };
 
@@ -10,14 +11,16 @@ export const useBoardsIds = () => useBoardsStore((s) => s.value.ids);
 export const useBoardsEntities = () => useBoardsStore((s) => s.value.entities);
 export const useBoardsStoreActions = () => useBoardsStore((s) => s.actions);
 
-export const useBoard = (id: string) => useBoardsStore((s) => s.value.entities[id]);
+export const useBoard = (id: string): Board | undefined =>
+  useBoardsStore((s) => s.value.entities[id]);
+
 export const useBoardIsLoading = () => useBoardsStore((s) => s.isLoading);
 
 export const useBoardError = (id: string) =>
   useBoardsStore((s) => {
     const isLoading = s.isLoading;
     const boardsError = s.error;
-    const board = s.value.entities[id];
+    const board: Board | undefined = s.value.entities[id];
 
     return boardsError ? boardsError : !isLoading && !board ? boardNotFoundError : undefined;
   });

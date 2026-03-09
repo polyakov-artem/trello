@@ -4,8 +4,8 @@ import { toast } from 'react-toastify';
 import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
 import { useCanDeleteBoard } from './guards';
 
-export const TITLE = 'Удаление доски';
-export const TEXT = 'Вы действительно хотите удалить доску?';
+export const TITLE = 'Board deletion';
+export const TEXT = 'Do you really want to delete the board?';
 
 export const useBtnDeleteBoard = (boardId: string) => {
   const deleteBoard = useDeleteBoard();

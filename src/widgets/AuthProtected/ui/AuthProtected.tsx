@@ -5,6 +5,10 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner/ErrorBanner';
 import type { PropsWithClassName } from '@/shared/types/types';
 import clsx from 'clsx';
 import { useSessionStore } from '@/entities/session';
+import { Button } from 'antd';
+import { reloadPage } from '@/shared/lib/locationUtils';
+import { BtnLogout } from '@/features/auth/logout';
+import { errorAdvices } from '@/shared/config/errorMsgs';
 
 const MSG_NO_PERMISSION = "Please log in. You don't have permission view this section";
 
@@ -23,13 +27,29 @@ export const AuthProtected: FC<PropsWithChildren & PropsWithClassName> = ({
   }
 
   if (sessionError) {
+    if (sessionError.status === 404) {
+      return (
+        <ErrorBanner
+          title={sessionError.message}
+          className={className}
+          withDefaultIcon
+          subtitle={errorAdvices.logout}
+          actions={<BtnLogout forcibly>Log out</BtnLogout>}
+        />
+      );
+    }
+
     return (
       <ErrorBanner
         title={sessionError.message}
         className={className}
-        withIcon
-        withReloadBtn
-        withSubtitle
+        withDefaultIcon
+        withDefaultSubtitle
+        actions={
+          <Button type="primary" onClick={reloadPage}>
+            Reload page
+          </Button>
+        }
       />
     );
   }

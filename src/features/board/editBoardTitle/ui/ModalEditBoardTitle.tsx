@@ -28,7 +28,7 @@ export const ModalEditBoardTitle: FC = () => {
   const body = isLoading ? (
     <Spinner />
   ) : error ? (
-    <ErrorBanner title={error.message} withIcon />
+    <ErrorBanner title={error.message} withDefaultIcon />
   ) : (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative">
       {formError && <p className="text-red-500">{formError}</p>}

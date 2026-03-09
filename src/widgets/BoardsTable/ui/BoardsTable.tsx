@@ -9,7 +9,7 @@ export const BoardsTable: FC<BoardsTableProps> = (props: BoardsTableProps) => {
   if (errorMsg) {
     return (
       <div className="border rounded-sm border-gray-200">
-        <ErrorBanner title={errorMsg} withIcon inline />
+        <ErrorBanner title={errorMsg} withDefaultIcon inline />
       </div>
     );
   }

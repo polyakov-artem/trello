@@ -65,11 +65,35 @@ type DeleteTasksBody = {
   tasksIds: string[];
 };
 
-const BOARD_ID = 'boardId';
-const COLUMN_ID = 'columnId';
-const TASK_ID = 'taskId';
-const USER_ID = 'userId';
-const SESSION_ID = 'sessionId';
+const insertionType = {
+  swap: 'swap',
+  before: 'before',
+  append: 'append',
+};
+
+type MoveTaskBody = {
+  operationType: string;
+  srcColumnId: string;
+  targetColumnId: string;
+  srcTaskId: string;
+  targetTaskId?: string;
+};
+
+type MoveColumnBody = {
+  operationType: string;
+  srcColumnId: string;
+  targetColumnId: string;
+};
+
+const PARAM_BOARD_ID = 'boardId';
+const PARAM_COLUMN_ID = 'columnId';
+const PARAM_TASK_ID = 'taskId';
+const PARAM_USER_ID = 'userId';
+const PARAM_SESSION_ID = 'sessionId';
+const PARAM_DELETE_TASKS = 'deleteTasks';
+
+const UNASSIGNED_TASKS_COLUMN_ID = '0_0';
+const UNASSIGNED_TASKS_COLUMN_TITLE = 'Unassigned tasks';
 
 const ERROR_PERMISSION_DENIED = 'Permission denied';
 const ERROR_AUTHORIZATION_REQUIRED = 'Authorization required';
@@ -139,14 +163,14 @@ const db = {
 /*                              Helpers                                       */
 /* -------------------------------------------------------------------------- */
 
-const getUserId = (req: Request) => req.params[USER_ID];
-const getBoardId = (req: Request) => req.params[BOARD_ID];
-const getColumnId = (req: Request) => req.params[COLUMN_ID];
-const getTaskId = (req: Request) => req.params[TASK_ID];
-const getSessionId = (req: Request) => (req.query as { [SESSION_ID]: string })[SESSION_ID];
+const getUserId = (req: Request) => req.params[PARAM_USER_ID];
+const getBoardId = (req: Request) => req.params[PARAM_BOARD_ID];
+const getColumnId = (req: Request) => req.params[PARAM_COLUMN_ID];
+const getTaskId = (req: Request) => req.params[PARAM_TASK_ID];
+const getSessionId = (req: Request) => req.query[PARAM_SESSION_ID];
 
 async function requireSession(req: Request, res: Response) {
-  const sessionId = getSessionId(req);
+  const sessionId = getSessionId(req) as string;
 
   if (!sessionId) {
     res.status(401).json({ error: ERROR_AUTHORIZATION_REQUIRED });
@@ -334,7 +358,7 @@ app.get('/users', async (_req, res) => {
   res.json({ data: await db.users() });
 });
 
-app.get(`/users/:${USER_ID}`, async (req, res) => {
+app.get(`/users/:${PARAM_USER_ID}`, async (req, res) => {
   await delay();
 
   const { user } = await requireUser(req, res);
@@ -343,7 +367,7 @@ app.get(`/users/:${USER_ID}`, async (req, res) => {
   res.json({ data: user });
 });
 
-app.delete(`/users/:${USER_ID}`, async (req, res) => {
+app.delete(`/users/:${PARAM_USER_ID}`, async (req, res) => {
   await delay();
 
   const { user, users } = await requireUser(req, res);
@@ -364,7 +388,7 @@ app.delete(`/users/:${USER_ID}`, async (req, res) => {
 /*                                  Sessions                                  */
 /* -------------------------------------------------------------------------- */
 
-app.post(`/sessions/login/:${USER_ID}`, async (req, res) => {
+app.post(`/sessions/login/:${PARAM_USER_ID}`, async (req, res) => {
   await delay();
   const userId = getUserId(req);
   const user = (await db.users()).find((u) => u.id === userId);
@@ -416,26 +440,7 @@ app.get('/tasks', async (req, res) => {
   res.json({ data: userTasks });
 });
 
-app.post('/tasks', async (req, res) => {
-  await delay();
-  const { session } = await requireSession(req, res);
-  if (!session) return;
-
-  const { title = '', description = '', completed = false } = req.body as CreateTaskBody;
-
-  const task: Task = {
-    id: nanoid(),
-    authorId: session.userId,
-    title,
-    description,
-    completed,
-  };
-
-  await db.saveTasks([...(await db.tasks()), task]);
-  res.json({ data: task });
-});
-
-app.put(`/tasks/:${TASK_ID}`, async (req, res) => {
+app.put(`/tasks/:${PARAM_TASK_ID}`, async (req, res) => {
   await delay();
   const { task, tasks } = await requireTask(req, res);
   if (!task) return;
@@ -483,7 +488,13 @@ app.post('/boards', async (req, res) => {
     id: nanoid(),
     authorId: session.userId,
     title,
-    columns: [],
+    columns: [
+      {
+        id: UNASSIGNED_TASKS_COLUMN_ID,
+        title: UNASSIGNED_TASKS_COLUMN_TITLE,
+        tasksIds: [],
+      },
+    ],
   };
 
   await db.saveBoards([...(await db.boards()), board]);
@@ -500,7 +511,7 @@ app.get('/boards', async (req, res) => {
   });
 });
 
-app.put(`/boards/:${BOARD_ID}`, async (req, res) => {
+app.put(`/boards/:${PARAM_BOARD_ID}`, async (req, res) => {
   await delay();
 
   const { board, boards } = await requireBoard(req, res);
@@ -513,7 +524,7 @@ app.put(`/boards/:${BOARD_ID}`, async (req, res) => {
   res.json({ data: updatedBoard });
 });
 
-app.delete(`/boards/:${BOARD_ID}`, async (req, res) => {
+app.delete(`/boards/:${PARAM_BOARD_ID}`, async (req, res) => {
   await delay();
 
   const { board, boards } = await requireBoard(req, res);
@@ -523,7 +534,7 @@ app.delete(`/boards/:${BOARD_ID}`, async (req, res) => {
   res.json({ data: { success: true } });
 });
 
-app.post(`/boards/:${BOARD_ID}/columns`, async (req, res) => {
+app.post(`/boards/:${PARAM_BOARD_ID}/columns`, async (req, res) => {
   await delay();
 
   const { board, boards } = await requireBoard(req, res);
@@ -540,22 +551,42 @@ app.post(`/boards/:${BOARD_ID}/columns`, async (req, res) => {
   res.json({ data: updatedBoard });
 });
 
-app.delete(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}`, async (req, res) => {
+app.delete(`/boards/:${PARAM_BOARD_ID}/columns/:${PARAM_COLUMN_ID}`, async (req, res) => {
   await delay();
 
   const { board, boards, column } = await requireBoardColumn(req, res);
   if (!column) return;
 
-  const updatedBoard: Board = {
-    ...board,
-    columns: board.columns.filter((c) => c.id !== column.id),
-  };
+  if (column.id === UNASSIGNED_TASKS_COLUMN_ID) {
+    return res.status(403).json({ error: ERROR_PERMISSION_DENIED });
+  }
 
-  await db.saveBoards(boards.map((b) => (b.id === board.id ? updatedBoard : b)));
-  res.json({ data: updatedBoard });
+  const { tasksIds } = column;
+  const shouldDeleteTasks = req.query[PARAM_DELETE_TASKS];
+  let tasks = await db.tasks();
+
+  if (shouldDeleteTasks && tasksIds.length > 0) {
+    tasks = tasks.filter((t) => !tasksIds.includes(t.id));
+    await db.saveTasks(tasks);
+  }
+
+  board.columns = board.columns.filter((c) => c.id !== column.id);
+
+  if (!shouldDeleteTasks) {
+    const unassignedTasksColumn = board.columns.find((c) => c.id === UNASSIGNED_TASKS_COLUMN_ID);
+
+    if (unassignedTasksColumn) {
+      unassignedTasksColumn.tasksIds = [...unassignedTasksColumn.tasksIds, ...tasksIds];
+    }
+  }
+
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? board : b)));
+  const userTasks = tasks.filter((t) => t.authorId === board.authorId);
+
+  res.json({ data: { board, tasks: userTasks } });
 });
 
-app.put(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}`, async (req, res) => {
+app.put(`/boards/:${PARAM_BOARD_ID}/columns/:${PARAM_COLUMN_ID}`, async (req, res) => {
   await delay();
 
   const { board, boards, column } = await requireBoardColumn(req, res);
@@ -573,7 +604,7 @@ app.put(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}`, async (req, res) => {
   res.json({ data: updatedBoard });
 });
 
-app.post(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}/tasks`, async (req, res) => {
+app.post(`/boards/:${PARAM_BOARD_ID}/columns/:${PARAM_COLUMN_ID}/tasks`, async (req, res) => {
   await delay();
 
   const { board, boards, column, session } = await requireBoardColumn(req, res);
@@ -594,6 +625,130 @@ app.post(`/boards/:${BOARD_ID}/columns/:${COLUMN_ID}/tasks`, async (req, res) =>
 
   await db.saveBoards(boards);
   res.json({ data: { board, task } });
+});
+
+app.put(`/boards/:${PARAM_BOARD_ID}/move/tasks`, async (req, res) => {
+  await delay();
+
+  const { board, boards } = await requireBoard(req, res);
+  if (!board) return;
+
+  const { columns } = board;
+  const { srcColumnId, targetColumnId, srcTaskId, targetTaskId, operationType } =
+    req.body as MoveTaskBody;
+
+  const allTasks = await db.tasks();
+
+  const srcColumn = columns.find((c) => c.id === srcColumnId);
+  const targetColumn = columns.find((c) => c.id === targetColumnId);
+
+  if (!srcColumn || !targetColumn) {
+    return res.status(400).json({ error: ERROR_COLUMN_NOT_FOUND });
+  }
+
+  const srcExists = allTasks.some((t) => t.id === srcTaskId);
+  const targetExists =
+    operationType === insertionType.append ||
+    (targetTaskId && allTasks.some((t) => t.id === targetTaskId));
+
+  if (!srcExists || !targetExists) {
+    return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
+  }
+
+  const isSameColumn = srcColumnId === targetColumnId;
+  const isSameId = srcTaskId === targetTaskId;
+
+  if (isSameColumn && isSameId) {
+    return res.json({ data: board });
+  }
+
+  const srcIndex = srcColumn.tasksIds.indexOf(srcTaskId);
+
+  if (srcIndex === -1) {
+    return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
+  }
+
+  if (operationType === insertionType.swap) {
+    if (!targetTaskId) {
+      return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
+    }
+
+    const targetIndex = targetColumn.tasksIds.indexOf(targetTaskId);
+
+    if (targetIndex === -1) {
+      return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
+    }
+
+    [targetColumn.tasksIds[targetIndex], srcColumn.tasksIds[srcIndex]] = [
+      srcColumn.tasksIds[srcIndex],
+      targetColumn.tasksIds[targetIndex],
+    ];
+  } else {
+    srcColumn.tasksIds.splice(srcIndex, 1);
+
+    if (operationType === insertionType.append) {
+      targetColumn.tasksIds.push(srcTaskId);
+    } else if (operationType === insertionType.before) {
+      if (!targetTaskId) {
+        return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
+      }
+
+      const targetIndex = targetColumn.tasksIds.indexOf(targetTaskId);
+      if (targetIndex === -1) {
+        return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
+      }
+
+      const insertIndex = isSameColumn && srcIndex < targetIndex ? targetIndex - 1 : targetIndex;
+
+      targetColumn.tasksIds.splice(insertIndex, 0, srcTaskId);
+    }
+  }
+
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? board : b)));
+
+  res.json({ data: board });
+});
+
+app.put(`/boards/:${PARAM_BOARD_ID}/move/columns`, async (req, res) => {
+  await delay();
+
+  const { board, boards } = await requireBoard(req, res);
+  if (!board) return;
+
+  const { columns } = board;
+  const { srcColumnId, targetColumnId, operationType } = req.body as MoveColumnBody;
+
+  const srcColumnIndex = columns.findIndex((c) => c.id === srcColumnId);
+  const targetColumnIndex = columns.findIndex((c) => c.id === targetColumnId);
+
+  if (srcColumnIndex === -1 || targetColumnIndex === -1) {
+    return res.status(400).json({ error: ERROR_COLUMN_NOT_FOUND });
+  }
+
+  if (operationType === insertionType.swap) {
+    if (srcColumnId === targetColumnId) {
+      return res.json({ data: board });
+    }
+
+    [columns[targetColumnIndex], columns[srcColumnIndex]] = [
+      columns[srcColumnIndex],
+      columns[targetColumnIndex],
+    ];
+  } else {
+    const [srcColumn] = columns.splice(srcColumnIndex, 1);
+
+    if (operationType === insertionType.append) {
+      columns.push(srcColumn);
+    } else if (operationType === insertionType.before) {
+      const insertIndex =
+        srcColumnIndex < targetColumnIndex ? targetColumnIndex - 1 : targetColumnIndex;
+
+      columns.splice(insertIndex, 0, srcColumn);
+    }
+  }
+
+  await db.saveBoards(boards.map((b) => (b.id === board.id ? board : b)));
+  res.json({ data: board });
 });
 
 app.listen(3000, () => console.log('🚀 Trello-like API running on http://localhost:3000'));

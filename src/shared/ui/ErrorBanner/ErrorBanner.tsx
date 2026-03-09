@@ -1,8 +1,6 @@
 import { errorAdvices } from '@/shared/config/errorMsgs';
-import { reloadPage } from '@/shared/lib/locationUtils';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { CloseCircleOutlined } from '@ant-design/icons';
-import { Button } from 'antd';
 import clsx from 'clsx';
 import type { FC } from 'react';
 
@@ -10,10 +8,9 @@ export type ErrorBannerProps = {
   title?: string;
   subtitle?: string;
   inline?: boolean;
-  withIcon?: boolean;
+  withDefaultIcon?: boolean;
   icon?: React.ReactNode;
-  withSubtitle?: boolean;
-  withReloadBtn?: boolean;
+  withDefaultSubtitle?: boolean;
   actions?: React.ReactNode;
 } & PropsWithClassName;
 
@@ -21,11 +18,10 @@ export const ErrorBanner: FC<ErrorBannerProps> = ({
   title = '',
   className,
   inline,
-  withIcon,
+  withDefaultIcon,
   icon,
-  withReloadBtn,
   subtitle,
-  withSubtitle,
+  withDefaultSubtitle,
   actions,
 }) => {
   const classes = clsx(
@@ -36,19 +32,11 @@ export const ErrorBanner: FC<ErrorBannerProps> = ({
 
   return (
     <div className={classes}>
-      {withIcon &&
+      {(withDefaultIcon || icon) &&
         (icon ? icon : <CloseCircleOutlined className="text-4xl" style={{ color: 'red' }} />)}
 
       <h4 className="text-2xl">{title}</h4>
-
-      {withSubtitle && <p>{subtitle || errorAdvices.tryAgain}</p>}
-
-      {withReloadBtn && (
-        <Button type="primary" onClick={reloadPage}>
-          Reload page
-        </Button>
-      )}
-
+      {(withDefaultSubtitle || subtitle) && <p>{subtitle || errorAdvices.tryAgain}</p>}
       {!!actions && actions}
     </div>
   );

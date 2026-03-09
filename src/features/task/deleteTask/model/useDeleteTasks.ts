@@ -3,20 +3,20 @@ import { useTasksStore, useTaskDeletionStore } from '@/entities/task';
 import { taskApi } from '@/shared/api/task/taskApi';
 import { useCallback } from 'react';
 import { useCanDeleteTaskFn } from './guards';
-import { useBoardsStoreActions } from '@/entities/board';
+import { useBoardsStoreActions, useBoardUpdateStore } from '@/entities/board';
 
 export const useDeleteTasks = () => {
   const getSessionStoreState = useSessionStore.use.getState();
   const canDeleteTaskFn = useCanDeleteTaskFn();
   const setCancelRef = useTaskDeletionStore.use.setCancelReqFn();
   const setTaskDeletionState = useTaskDeletionStore.use.setState();
+  const setBoardUpdateState = useBoardUpdateStore.use.setState();
   const { removeTasks } = useBoardsStoreActions();
   const setTasksState = useTasksStore.use.setState();
 
   return useCallback(
     async (value: string[] | string, onStart?: () => void, onEnd?: () => void) => {
       const taskIds = Array.isArray(value) ? value : [value];
-      console.log('taskIds', taskIds);
 
       if (!canDeleteTaskFn() || !taskIds.length) {
         return;
@@ -25,6 +25,7 @@ export const useDeleteTasks = () => {
       onStart?.();
 
       setTaskDeletionState({ isLoading: true, error: undefined });
+      setBoardUpdateState({ isLoading: true });
 
       const controller = new AbortController();
       setCancelRef(() => controller.abort());
@@ -47,6 +48,7 @@ export const useDeleteTasks = () => {
       }
 
       setTaskDeletionState({ isLoading: false });
+      setBoardUpdateState({ isLoading: false });
 
       onEnd?.();
       return isAborted ? undefined : result;
@@ -55,6 +57,7 @@ export const useDeleteTasks = () => {
       canDeleteTaskFn,
       getSessionStoreState,
       removeTasks,
+      setBoardUpdateState,
       setCancelRef,
       setTaskDeletionState,
       setTasksState,

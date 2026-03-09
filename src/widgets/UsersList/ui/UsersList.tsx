@@ -31,7 +31,7 @@ export const UsersList: FC<UsersListProps> = ({ className }) => {
         {userId === sessionUserId ? (
           <>
             <BtnRemoveUser id={userId} />
-            <BtnLogout />
+            <BtnLogout>Log out</BtnLogout>
           </>
         ) : (
           <BtnLogin userId={userId} />

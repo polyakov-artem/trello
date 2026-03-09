@@ -2,20 +2,11 @@ import { useCallback, useState } from 'react';
 import { useDeleteTasks } from './useDeleteTasks';
 import { toast } from 'react-toastify';
 import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
-import { pluralizeWord } from '@/shared/lib/pluralizeWord';
 
 const createWarningProps = (quantity: number) => {
   return {
-    title: `Удаление ${pluralizeWord(quantity, {
-      one: 'задачи',
-      few: 'задач',
-      many: 'задач',
-    })}`,
-    body: `Вы действительно хотите удалить ${quantity} ${pluralizeWord(quantity, {
-      one: 'задачу',
-      few: 'задачи',
-      many: 'задач',
-    })}?`,
+    title: `Task${quantity > 1 ? 's' : ''} deletion`,
+    body: `Do you really want to delete ${quantity} task${quantity > 1 ? 's' : ''}?`,
   };
 };
 export const useBtnDeleteTasksBase = (value: string[] | string) => {

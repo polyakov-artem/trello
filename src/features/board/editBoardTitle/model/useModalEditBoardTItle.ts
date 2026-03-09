@@ -16,7 +16,7 @@ export const defaultFormState = {
 const schema = Yup.object().shape({
   title: Yup.string()
     .min(2, 'Title must be at least 2 characters long')
-    .max(20, 'Title must be no longer than 20 characters')
+    .max(50, 'Title must be no longer than 50 characters')
     .required('Title is required'),
 });
 

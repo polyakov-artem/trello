@@ -36,8 +36,8 @@ export const useLogout = () => {
   const canLogoutFn = useCanLogoutFn();
 
   const logout = useCallback(
-    async (onStart?: () => void, onEnd?: () => void) => {
-      if (!canLogoutFn()) {
+    async (onStart?: () => void, onEnd?: () => void, forcibly = false) => {
+      if (!forcibly && !canLogoutFn()) {
         return;
       }
 

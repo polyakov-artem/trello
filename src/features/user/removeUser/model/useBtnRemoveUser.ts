@@ -4,8 +4,8 @@ import { useRemoveUser } from './useRemoveUser';
 import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
 import { useCanRemoveUser } from './guards';
 
-export const TITLE = 'Удаление пользователя';
-export const TEXT = 'Вы действительно хотите удалить пользователя?';
+export const TITLE = 'User Deletion';
+export const TEXT = 'Do you really want to delete the user?';
 
 export const useBtnRemoveUser = (userId: string) => {
   const removeUser = useRemoveUser();

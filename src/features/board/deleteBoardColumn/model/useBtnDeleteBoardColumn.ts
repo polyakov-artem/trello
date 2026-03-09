@@ -4,26 +4,40 @@ import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationCon
 import { useCanDeleteBoardColumn } from './guards';
 import { useDeleteBoardColumn } from './useDeleteBoardColumn';
 
-export const TITLE = 'Удаление колонки';
-export const TEXT = 'Вы действительно хотите удалить колонку?';
+export const COLUMN_DELETION_TITLE = 'Column deletion';
+export const COLUMN_DELETION_TEXT = 'Do you really want to delete the column?';
+export const TASKS_DELETION_TITLE = 'Tasks deletion';
+export const TASKS_DELETION_TEXT = 'Do you also want to delete the tasks?';
 
-export const useBtnDeleteBoardColumn = (boardId: string, columnId: string) => {
+export const useBtnDeleteBoardColumn = (
+  boardId: string,
+  columnId: string,
+  columnHasTasks: boolean
+) => {
   const canDeleteBoardColumn = useCanDeleteBoardColumn();
   const { getConfirmation } = useConfirmationContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const deleteBoardColumn = useDeleteBoardColumn();
 
   const deletionHandler = useCallback(async () => {
-    const confirmed = await getConfirmation({
-      title: TITLE,
-      body: TEXT,
+    const shouldDeleteColumn = await getConfirmation({
+      title: COLUMN_DELETION_TITLE,
+      body: COLUMN_DELETION_TEXT,
     });
 
-    if (!confirmed) {
+    if (!shouldDeleteColumn) {
       return;
     }
 
+    const shouldDeleteTasks =
+      columnHasTasks &&
+      (await getConfirmation({
+        title: TASKS_DELETION_TITLE,
+        body: TASKS_DELETION_TEXT,
+      }));
+
     const result = await deleteBoardColumn({
+      deleteTasks: shouldDeleteTasks,
       boardId,
       columnId,
       onStart: () => setIsProcessing(true),
@@ -33,7 +47,7 @@ export const useBtnDeleteBoardColumn = (boardId: string, columnId: string) => {
     if (result?.ok === false) {
       toast.error(result.error.message);
     }
-  }, [boardId, columnId, deleteBoardColumn, getConfirmation]);
+  }, [boardId, columnHasTasks, columnId, deleteBoardColumn, getConfirmation]);
 
   const handleClick = useCallback(() => {
     void deletionHandler();

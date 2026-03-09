@@ -5,15 +5,18 @@ import {
   useBoardUpdateStore,
 } from '@/entities/board';
 import { useSessionStore } from '@/entities/session';
-import { useTaskDeletionStore, useTasksStore } from '@/entities/task';
+import { useTaskDeletionStore, useTasksStore, useTaskUpdateStore } from '@/entities/task';
 import type { Session } from '@/shared/api/auth/authApi';
 import { useCallback, useMemo } from 'react';
 
 export type CanDeleteTaskGuardProps = {
   session: Session | undefined;
   isLoadingSession: boolean;
+
   isDeletingTask: boolean;
   isLoadingTasks: boolean;
+  isUpdatingTask: boolean;
+
   isLoadingBoards: boolean;
   isUpdatingBoard: boolean;
   isDeletingBoard: boolean;
@@ -24,6 +27,7 @@ export const canDeleteTaskGuard = ({
   isLoadingSession,
   isDeletingTask,
   isLoadingTasks,
+  isUpdatingTask,
   isLoadingBoards,
   isUpdatingBoard,
   isDeletingBoard,
@@ -33,6 +37,7 @@ export const canDeleteTaskGuard = ({
     !isLoadingSession &&
     !isDeletingTask &&
     !isLoadingTasks &&
+    !isUpdatingTask &&
     !isLoadingBoards &&
     !isUpdatingBoard &&
     !isDeletingBoard
@@ -46,6 +51,7 @@ export const useCanDeleteTaskFn = () => {
   const getBoardUpdateState = useBoardUpdateStore.use.getState();
   const getBoardDeletionState = useBoardDeletionStore.use.getState();
   const getBoardsState = useBoardsStore.getState;
+  const getTaskUpdateStoreState = useTaskUpdateStore.use.getState();
 
   return useCallback(
     () =>
@@ -57,6 +63,7 @@ export const useCanDeleteTaskFn = () => {
         isUpdatingBoard: getBoardUpdateState().isLoading,
         isDeletingBoard: getBoardDeletionState().isLoading,
         isLoadingBoards: getBoardsState().isLoading,
+        isUpdatingTask: getTaskUpdateStoreState().isLoading,
       }),
     [
       getBoardDeletionState,
@@ -65,6 +72,7 @@ export const useCanDeleteTaskFn = () => {
       getDeletionStoreState,
       getSessionStoreState,
       getTasksStoreState,
+      getTaskUpdateStoreState,
     ]
   );
 };
@@ -77,6 +85,7 @@ export const useCanDeleteTask = () => {
   const isUpdatingBoard = useBoardUpdateStore.use.isLoading();
   const isDeletingBoard = useBoardDeletionStore.use.isLoading();
   const isLoadingBoards = useBoardsIsLoading();
+  const isUpdatingTask = useTaskUpdateStore.use.isLoading();
 
   return useMemo(
     () =>
@@ -88,6 +97,7 @@ export const useCanDeleteTask = () => {
         isUpdatingBoard,
         isDeletingBoard,
         isLoadingBoards,
+        isUpdatingTask,
       }),
     [
       isDeletingBoard,
@@ -95,6 +105,7 @@ export const useCanDeleteTask = () => {
       isLoadingBoards,
       isLoadingSession,
       isLoadingTasks,
+      isUpdatingTask,
       isUpdatingBoard,
       session,
     ]

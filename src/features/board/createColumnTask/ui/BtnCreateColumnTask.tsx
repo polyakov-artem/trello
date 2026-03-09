@@ -1,24 +1,26 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Button } from 'antd';
 import { useCallback, type FC, type PropsWithChildren } from 'react';
-import { useCreateTaskContext } from '../model/CreateTaskContext';
+import { useCreateColumnTaskContext } from '../model/CreateColumnTaskContext';
 import type { BaseButtonProps } from 'antd/es/button/button';
+import { useCanCreateColumnTask } from '../model/guards';
 
-export type BtnCreateTaskProps = {
+export type BtnCreateColumnTaskProps = {
   size?: BaseButtonProps['size'];
-  columnId?: string;
-  boardId?: string;
+  columnId: string;
+  boardId: string;
 } & PropsWithClassName &
   PropsWithChildren;
 
-export const BtnCreateTask: FC<BtnCreateTaskProps> = ({
+export const BtnCreateColumnTask: FC<BtnCreateColumnTaskProps> = ({
   className,
   children,
   size,
   columnId,
   boardId,
 }) => {
-  const { openModal } = useCreateTaskContext();
+  const canCreateColumnTask = useCanCreateColumnTask();
+  const { openModal } = useCreateColumnTaskContext();
 
   const handleClick = useCallback(
     () => openModal({ columnId, boardId }),
@@ -27,6 +29,7 @@ export const BtnCreateTask: FC<BtnCreateTaskProps> = ({
 
   return (
     <Button
+      disabled={!canCreateColumnTask}
       size={size}
       onClick={handleClick}
       color="green"

@@ -1,1 +1,1 @@
-export const UNASSIGNED_TASKS_COLUMN_ID = '_0';
+export const UNASSIGNED_TASKS_COLUMN_ID = '0_0';

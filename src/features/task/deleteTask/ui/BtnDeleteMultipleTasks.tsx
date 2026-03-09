@@ -5,12 +5,7 @@ import { useBtnDeleteTasksBase } from '../model/useBtnDeleteTasksBase';
 import { useTasksSelectionContext } from '@/entities/task';
 import { useCanDeleteTask } from '../model/guards';
 
-type UseBtnDeleteMultipleTasksProps = {
-  columnId: string;
-  tasksIds: string[];
-};
-
-const useBtnDeleteMultipleTasks = ({ columnId, tasksIds }: UseBtnDeleteMultipleTasksProps) => {
+const useBtnDeleteMultipleTasks = (columnId: string, tasksIds: string[]) => {
   const { currentMap } = useTasksSelectionContext();
 
   const tasksToDelete = useMemo(
@@ -24,16 +19,20 @@ const useBtnDeleteMultipleTasks = ({ columnId, tasksIds }: UseBtnDeleteMultipleT
   return { isLoading, handleClick, isDisabled };
 };
 
-export type BtnDeleteMultipleTasksProps = BaseButtonProps & UseBtnDeleteMultipleTasksProps;
+export type BtnDeleteMultipleTasksProps = BaseButtonProps & {
+  columnId: string;
+  tasksIds: string[];
+};
 
 export const BtnDeleteMultipleTasks: FC<BtnDeleteMultipleTasksProps> = (props) => {
-  const { isLoading, handleClick, isDisabled } = useBtnDeleteMultipleTasks(props);
+  const { columnId, tasksIds, ...restProps } = props;
+  const { isLoading, handleClick, isDisabled } = useBtnDeleteMultipleTasks(columnId, tasksIds);
   return (
     <Button
       color="red"
       variant="solid"
       iconPosition={'end'}
-      {...props}
+      {...restProps}
       onClick={handleClick}
       disabled={isDisabled}
       loading={isLoading}

@@ -17,7 +17,7 @@ export const TasksTable: FC<TasksTableProps> = ({ className }: TasksTableProps) 
   if (tasksError?.message) {
     return (
       <div className="border rounded-sm border-gray-200">
-        <ErrorBanner title={tasksError?.message} withIcon inline />
+        <ErrorBanner title={tasksError?.message} withDefaultIcon inline />
       </div>
     );
   }

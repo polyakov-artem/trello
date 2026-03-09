@@ -23,4 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 stats.html
-server/data
+server/data/sessions.json

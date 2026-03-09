@@ -9,17 +9,6 @@ export const taskApi = {
     });
   },
 
-  async createTask(sessionId: string, taskDraft: TaskDraft, signal?: AbortSignal) {
-    return await safeFetch<Task>(`${API_URL}/tasks?sessionId=${sessionId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(taskDraft),
-      signal,
-    });
-  },
-
   async updateTask(sessionId: string, taskId: string, taskDraft: TaskDraft, signal?: AbortSignal) {
     return await safeFetch<Task>(`${API_URL}/tasks/${taskId}?sessionId=${sessionId}`, {
       method: 'PUT',

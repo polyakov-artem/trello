@@ -1,28 +1,33 @@
 import { useSessionStore } from '@/entities/session';
+import { useSessionUserStore } from '@/entities/user';
 import type { Session } from '@/shared/api/auth/authApi';
 import { useCallback } from 'react';
 
 export type CanLoadSessionUserGuardProps = {
   session: Session | undefined;
   isLoadingSession: boolean;
+  isLoadingSessionUser: boolean;
 };
 
 export const canLoadSessionUserGuard = ({
   session,
   isLoadingSession,
+  isLoadingSessionUser,
 }: CanLoadSessionUserGuardProps) => {
-  return !!session && !isLoadingSession;
+  return !!session && !isLoadingSession && !isLoadingSessionUser;
 };
 
 export const useCanLoadSessionUserFn = () => {
-  const getState = useSessionStore.use.getState();
+  const getSessionStoreState = useSessionStore.use.getState();
+  const getUserSessionState = useSessionUserStore.getState;
 
   return useCallback(
     () =>
       canLoadSessionUserGuard({
-        session: getState().value,
-        isLoadingSession: getState().isLoading,
+        session: getSessionStoreState().value,
+        isLoadingSession: getSessionStoreState().isLoading,
+        isLoadingSessionUser: getUserSessionState().isLoading,
       }),
-    [getState]
+    [getSessionStoreState, getUserSessionState]
   );
 };
