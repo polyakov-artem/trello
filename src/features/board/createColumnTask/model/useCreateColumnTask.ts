@@ -54,7 +54,13 @@ export const useCreateColumnTask = () => {
           const { task, board } = result.data;
 
           setTasksState(({ value: prevTasks }) => {
-            return { value: prevTasks ? [...prevTasks, task] : [task] };
+            if (!prevTasks) {
+              return { value: [task] };
+            }
+
+            const foundTask = prevTasks?.find((t) => t.id === task.id);
+
+            return { value: foundTask ? prevTasks : [...prevTasks, task] };
           });
 
           updateBoard(board);
