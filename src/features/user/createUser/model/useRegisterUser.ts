@@ -21,10 +21,16 @@ export const useRegisterUser = () => {
       const result = await userApi.registerUser(user);
 
       if (result.ok) {
-        setUsersState((prevState) => {
-          return {
-            value: [...(prevState?.value || []), result.data],
-          };
+        const createdUser = result.data;
+
+        setUsersState(({ value: prevUsers }) => {
+          if (!prevUsers) {
+            return { value: [createdUser] };
+          }
+
+          const foundUser = prevUsers.find((user) => user.id === createdUser.id);
+
+          return { value: foundUser ? prevUsers : [...prevUsers, createdUser] };
         });
       } else {
         setUsersState({ error: result.error });
