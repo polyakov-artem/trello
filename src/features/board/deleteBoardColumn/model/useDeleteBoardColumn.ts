@@ -1,77 +1,47 @@
-import { useSessionStore } from '@/entities/session';
+import { useSessionId } from '@/entities/session';
 import { boardApi } from '@/shared/api/board/boardApi';
 import { useCallback } from 'react';
-import { useCanDeleteBoardColumnFn } from './guards';
-import { useBoardsStoreActions, useBoardUpdateStore } from '@/entities/board';
-import { useTaskDeletionStore, useTasksStore } from '@/entities/task';
+import { useCanDeleteBoardColumn } from './guards';
+import { useBoard } from '@/entities/board';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { mutationKeys, queryKeys } from '@/shared/config/queries';
 
-export type DeleteBoardColumnProps = {
-  boardId: string;
-  columnId: string;
-  deleteTasks: boolean;
-  onStart?: () => void;
-  onEnd?: () => void;
-};
+export const useDeleteBoardColumn = (columnId: string) => {
+  const queryClient = useQueryClient();
+  const sessionId = useSessionId();
+  const boardId = useBoard().id;
+  const canDeleteBoardColumn = useCanDeleteBoardColumn(columnId);
 
-export const useDeleteBoardColumn = () => {
-  const getSessionState = useSessionStore.use.getState();
-  const canDeleteBoardColumn = useCanDeleteBoardColumnFn();
-  const setTaskDeletionStoreState = useTaskDeletionStore.use.setState();
-  const setBoardUpdateState = useBoardUpdateStore.use.setState();
-  const setBoardUpdateCancelReqFn = useBoardUpdateStore.use.setCancelReqFn();
-  const setTasksState = useTasksStore.use.setState();
-  const { updateBoard } = useBoardsStoreActions();
-
-  return useCallback(
-    async ({ deleteTasks, onStart, onEnd, boardId, columnId }: DeleteBoardColumnProps) => {
-      if (!canDeleteBoardColumn()) {
-        return;
-      }
-
-      onStart?.();
-
-      setBoardUpdateState({ isLoading: true, error: undefined });
-      setTaskDeletionStoreState({ isLoading: true, error: undefined });
-
-      const controller = new AbortController();
-      setBoardUpdateCancelReqFn(() => controller.abort());
-
-      const sessionId = getSessionState().value?.sessionId || '';
-
-      const result = await boardApi.deleteBoardColumn({
+  const { mutateAsync, isPending: isDeletingBoardColumn } = useMutation({
+    mutationKey: mutationKeys.deleteBoardColumn({
+      sessionId,
+      boardId,
+    }),
+    mutationFn: async (deleteTasks: boolean) => {
+      return await boardApi.deleteBoardColumn({
         sessionId,
         boardId,
         columnId,
-        signal: controller.signal,
         deleteTasks,
       });
+    },
 
-      const isAborted = controller.signal.aborted;
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.boards({ sessionId }) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks({ sessionId }) });
+    },
+  });
 
-      if (!isAborted) {
-        if (result.ok) {
-          const { tasks, board } = result.data;
-          setTasksState({ value: tasks });
-          updateBoard(board);
-        } else {
-          setBoardUpdateState({ error: result.error });
-        }
+  const deleteBoardColumn = useCallback(
+    async (deleteTasks: boolean) => {
+      if (!canDeleteBoardColumn) {
+        return;
       }
 
-      setTaskDeletionStoreState({ isLoading: false });
-      setBoardUpdateState({ isLoading: false });
-      onEnd?.();
-
-      return isAborted ? undefined : result;
+      return await mutateAsync(deleteTasks);
     },
-    [
-      canDeleteBoardColumn,
-      getSessionState,
-      setBoardUpdateCancelReqFn,
-      setBoardUpdateState,
-      setTaskDeletionStoreState,
-      setTasksState,
-      updateBoard,
-    ]
+    [canDeleteBoardColumn, mutateAsync]
   );
+
+  return { deleteBoardColumn, isDeletingBoardColumn, canDeleteBoardColumn };
 };

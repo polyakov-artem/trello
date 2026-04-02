@@ -1,5 +1,5 @@
-import { useSessionStore } from '@/entities/session';
-import { UserPreview, useSessionUserStore } from '@/entities/user';
+import { UserPreview } from '@/entities/user';
+import { useSessionUserQuery } from '@/entities/user/';
 import { ROUTER_PATHS } from '@/shared/config/routes';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { Logo } from '@/shared/ui/Logo/Logo';
@@ -16,11 +16,7 @@ const LINKS = [
 ] satisfies Array<[string, string]>;
 
 export const Header: FC<HeaderProps> = ({ className }) => {
-  const sessionUser = useSessionUserStore.use.value();
-  const isLoadingSessionUser = useSessionUserStore.use.isLoading();
-  const isLoadingSession = useSessionStore.use.isLoading();
-
-  const isLoading = isLoadingSessionUser || isLoadingSession;
+  const { sessionUser, isFetchingSessionUser } = useSessionUserQuery();
 
   return (
     <header className={clsx('border-b border-b-slate-300  bg-white', className)}>
@@ -31,7 +27,7 @@ export const Header: FC<HeaderProps> = ({ className }) => {
         <UserPreview
           name={sessionUser?.name}
           avatarId={sessionUser?.avatarId}
-          isLoading={isLoading}
+          isLoading={isFetchingSessionUser}
         />
       </div>
     </header>

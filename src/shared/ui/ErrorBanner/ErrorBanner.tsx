@@ -12,6 +12,7 @@ export type ErrorBannerProps = {
   icon?: React.ReactNode;
   withDefaultSubtitle?: boolean;
   actions?: React.ReactNode;
+  withBorder?: boolean;
 } & PropsWithClassName;
 
 export const ErrorBanner: FC<ErrorBannerProps> = ({
@@ -23,10 +24,12 @@ export const ErrorBanner: FC<ErrorBannerProps> = ({
   subtitle,
   withDefaultSubtitle,
   actions,
+  withBorder,
 }) => {
   const classes = clsx(
     'flex justify-center items-center grow gap-2 p-4',
     [!inline && 'flex-col'],
+    withBorder && 'border border-red-300 border-2 rounded-md',
     className
   );
 

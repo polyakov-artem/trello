@@ -3,7 +3,7 @@ import { Button } from 'antd';
 import { useCallback, type FC, type PropsWithChildren } from 'react';
 import { useEditTaskContext } from '../model/EditTaskContext';
 import type { BaseButtonProps } from 'antd/es/button/button';
-import { useCanUpdateTask } from '../model/guards';
+import { useCanEditTask } from '../model/guards';
 
 export type BtnUpdateTaskProps = PropsWithChildren &
   PropsWithClassName & {
@@ -13,7 +13,7 @@ export type BtnUpdateTaskProps = PropsWithChildren &
 
 export const BtnEditTask: FC<BtnUpdateTaskProps> = ({ className, taskId, children, size }) => {
   const { openModal } = useEditTaskContext();
-  const isBtnDisabled = !useCanUpdateTask();
+  const isBtnDisabled = !useCanEditTask(taskId);
 
   const handleClick = useCallback(() => {
     openModal({ taskId });

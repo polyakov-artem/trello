@@ -4,15 +4,15 @@ import { useCallback, type FC } from 'react';
 import { useAddBoardColumnContext } from '../model/AddBoardColumnContext';
 import { useCanAddBoardColumn } from '../model/guards';
 
-export type BtnAddBoardColumnProps = { boardId: string } & PropsWithClassName;
+export type BtnAddBoardColumnProps = PropsWithClassName;
 
-export const BtnAddBoardColumn: FC<BtnAddBoardColumnProps> = ({ className, boardId }) => {
+export const BtnAddBoardColumn: FC<BtnAddBoardColumnProps> = ({ className }) => {
   const { openModal } = useAddBoardColumnContext();
   const isBtnDisabled = !useCanAddBoardColumn();
 
   const handleClick = useCallback(() => {
-    openModal({ boardId });
-  }, [boardId, openModal]);
+    openModal();
+  }, [openModal]);
 
   return (
     <Button

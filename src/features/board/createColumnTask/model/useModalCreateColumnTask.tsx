@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { type CheckboxChangeEvent } from 'antd';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import { useCreateColumnTaskContext } from './CreateColumnTaskContext';
 import { useCreateColumnTask } from './useCreateColumnTask';
-import { useTaskCreationStore } from '@/entities/task';
-import { useCanCreateColumnTask } from './guards';
 
 export const defaultFormState = {
   title: '',
@@ -22,57 +20,44 @@ const schema = Yup.object().shape({
 
 export const useModalCreateColumnTask = () => {
   const [formError, setFormError] = useState('');
-
   const { closeModal, isOpen, details } = useCreateColumnTaskContext();
-  const { boardId, columnId } = details || {};
-  const createTask = useCreateColumnTask();
-  const isProcessing = useTaskCreationStore.use.isLoading();
-  const isFormDisabled = !useCanCreateColumnTask();
-
-  const handleCloseModal = useCallback(() => {
-    setFormError('');
-    closeModal();
-  }, [closeModal]);
+  const { columnId = '' } = details || {};
+  const { createColumnTask, isCreatingColumnTask, canCreateColumnTask } = useCreateColumnTask();
+  const isFormDisabled = !canCreateColumnTask;
 
   const formik = useFormik({
     initialValues: defaultFormState,
     validationSchema: schema,
     onSubmit: async (values) => {
-      if (!boardId || !columnId) {
-        return;
-      }
-
-      const result = await createTask({
-        taskDraft: values,
-        boardId,
-        columnId,
-        onStart: () => setFormError(''),
-      });
-
-      if (result) {
-        if (result?.ok === false) {
-          setFormError(result.error.message);
-        } else {
-          handleCloseModal();
+      try {
+        setFormError('');
+        await createColumnTask({
+          taskDraft: values,
+          columnId,
+        });
+        handleCloseModal();
+      } catch (e) {
+        if (e instanceof Error) {
+          setFormError(e.message);
         }
       }
     },
   });
 
-  const { resetForm } = formik;
+  const { resetForm, values, handleSubmit, touched, errors, setFieldValue } = formik;
 
-  useEffect(() => {
-    if (!isOpen) {
-      void resetForm();
-    }
-  }, [isOpen, resetForm]);
+  const handleCloseModal = useCallback(() => {
+    setFormError('');
+    closeModal();
+    resetForm();
+  }, [closeModal, resetForm]);
 
   const handleFieldChange = useCallback(
     (name: string, value: string[] | string | boolean) => {
       setFormError('');
-      void formik.setFieldValue(name, value);
+      void setFieldValue(name, value);
     },
-    [formik]
+    [setFieldValue]
   );
 
   const handleInputChange = useCallback(
@@ -89,35 +74,35 @@ export const useModalCreateColumnTask = () => {
     [handleFieldChange]
   );
 
-  const handleSubmitBtnClick = useCallback(() => formik.handleSubmit(), [formik]);
+  const handleSubmitBtnClick = useCallback(() => handleSubmit(), [handleSubmit]);
 
   return useMemo(
     () => ({
-      values: formik.values,
-      titleError: formik.touched.title && formik.errors.title ? formik.errors.title : '',
+      values,
+      titleError: touched.title && errors.title ? errors.title : '',
       formError,
       handleInputChange,
       handleCheckboxChange,
-      handleSubmit: formik.handleSubmit,
+      handleSubmit: handleSubmit,
       handleSubmitBtnClick,
       closeModal: handleCloseModal,
       isFormDisabled,
       isOpen,
-      isProcessing,
+      isCreatingColumnTask,
     }),
     [
+      errors.title,
       formError,
-      formik.errors.title,
-      formik.handleSubmit,
-      formik.touched.title,
-      formik.values,
       handleCheckboxChange,
       handleCloseModal,
       handleInputChange,
+      handleSubmit,
       handleSubmitBtnClick,
+      isCreatingColumnTask,
       isFormDisabled,
       isOpen,
-      isProcessing,
+      touched.title,
+      values,
     ]
   );
 };

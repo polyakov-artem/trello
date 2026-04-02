@@ -1,66 +1,40 @@
-import { useSessionStore } from '@/entities/session';
-import { useTasksStore, useTaskDeletionStore } from '@/entities/task';
+import { useCallback, useMemo } from 'react';
+import { useCanDeleteTasks } from './guards';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { mutationKeys, queryKeys } from '@/shared/config/queries';
+import { useSessionId } from '@/entities/session';
 import { taskApi } from '@/shared/api/task/taskApi';
-import { useCallback } from 'react';
-import { useCanDeleteTaskFn } from './guards';
-import { useBoardsStoreActions, useBoardUpdateStore } from '@/entities/board';
 
-export const useDeleteTasks = () => {
-  const getSessionStoreState = useSessionStore.use.getState();
-  const canDeleteTaskFn = useCanDeleteTaskFn();
-  const setCancelRef = useTaskDeletionStore.use.setCancelReqFn();
-  const setTaskDeletionState = useTaskDeletionStore.use.setState();
-  const setBoardUpdateState = useBoardUpdateStore.use.setState();
-  const { removeTasks } = useBoardsStoreActions();
-  const setTasksState = useTasksStore.use.setState();
+export const useDeleteTasks = (
+  taskIdOrTasksIds: string[] | string,
+  boardIdsOrBoardsIds: string[] | string
+) => {
+  const sessionId = useSessionId();
+  const queryClient = useQueryClient();
 
-  return useCallback(
-    async (value: string[] | string, onStart?: () => void, onEnd?: () => void) => {
-      const taskIds = Array.isArray(value) ? value : [value];
+  const tasksIds = useMemo(() => [taskIdOrTasksIds].flat(), [taskIdOrTasksIds]);
+  const boardsIds = useMemo(() => [boardIdsOrBoardsIds].flat(), [boardIdsOrBoardsIds]);
+  const canDeleteTasks = useCanDeleteTasks(tasksIds, boardsIds);
 
-      if (!canDeleteTaskFn() || !taskIds.length) {
-        return;
-      }
-
-      onStart?.();
-
-      setTaskDeletionState({ isLoading: true, error: undefined });
-      setBoardUpdateState({ isLoading: true });
-
-      const controller = new AbortController();
-      setCancelRef(() => controller.abort());
-
-      const sessionId = getSessionStoreState().value?.sessionId || '';
-
-      const result = await taskApi.deleteTasks(sessionId, taskIds, controller.signal);
-      const isAborted = controller.signal.aborted;
-
-      if (!isAborted) {
-        if (result.ok) {
-          setTasksState((prevState) => {
-            return {
-              value: prevState.value?.filter((task) => !taskIds.includes(task.id)),
-            };
-          });
-
-          removeTasks(taskIds);
-        }
-      }
-
-      setTaskDeletionState({ isLoading: false });
-      setBoardUpdateState({ isLoading: false });
-
-      onEnd?.();
-      return isAborted ? undefined : result;
+  const { mutateAsync, isPending: isDeletingTasks } = useMutation({
+    mutationKey: mutationKeys.deleteTasks({ sessionId, tasksIds, boardsIds }),
+    mutationFn: async () => {
+      await taskApi.deleteTasks({ sessionId, tasksIds });
     },
-    [
-      canDeleteTaskFn,
-      getSessionStoreState,
-      removeTasks,
-      setBoardUpdateState,
-      setCancelRef,
-      setTaskDeletionState,
-      setTasksState,
-    ]
-  );
+
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.boards({ sessionId }) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks({ sessionId }) });
+    },
+  });
+
+  const deleteTasks = useCallback(async () => {
+    if (!canDeleteTasks) {
+      return;
+    }
+
+    return await mutateAsync();
+  }, [canDeleteTasks, mutateAsync]);
+
+  return { deleteTasks, isDeletingTasks, isDisabled: !canDeleteTasks };
 };

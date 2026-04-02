@@ -1,88 +1,49 @@
-import { useSessionStore } from '@/entities/session';
 import { useCallback } from 'react';
-import { useCanCreateColumnTaskFn } from './guards';
+import { useCanCreateColumnTask } from './guards';
 import type { TaskDraft } from '@/shared/types/types';
-import { useTaskCreationStore, useTasksStore } from '@/entities/task';
 import { boardApi } from '@/shared/api/board/boardApi';
-import { useBoardsStoreActions, useBoardUpdateStore } from '@/entities/board';
+import { mutationKeys, queryKeys } from '@/shared/config/queries';
+import { useBoard } from '@/entities/board';
+import { useSessionId } from '@/entities/session';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export type CreateColumnTaskProps = {
-  boardId: string;
   columnId: string;
   taskDraft: TaskDraft;
-  onStart?: () => void;
-  onEnd?: () => void;
 };
 
 export const useCreateColumnTask = () => {
-  const getSessionState = useSessionStore.use.getState();
-  const canCreateColumnTask = useCanCreateColumnTaskFn();
+  const boardId = useBoard().id;
+  const canCreateColumnTask = useCanCreateColumnTask();
+  const sessionId = useSessionId();
+  const queryClient = useQueryClient();
 
-  const setCancelReqFn = useTaskCreationStore.use.setCancelReqFn();
-  const setTaskCreationState = useTaskCreationStore.use.setState();
-  const setBoardUpdateState = useBoardUpdateStore.use.setState();
-  const setTasksState = useTasksStore.use.setState();
-  const { updateBoard } = useBoardsStoreActions();
+  const { mutateAsync, isPending: isCreatingColumnTask } = useMutation({
+    mutationKey: mutationKeys.createColumnTask({ boardId, sessionId }),
+    mutationFn: async (props: CreateColumnTaskProps) => {
+      return await boardApi.createColumnTask({ ...props, boardId, sessionId });
+    },
 
-  return useCallback(
-    async ({ taskDraft, onStart, onEnd, boardId, columnId }: CreateColumnTaskProps) => {
-      if (!canCreateColumnTask()) {
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks({ sessionId }) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.boards({ sessionId }) });
+    },
+  });
+
+  const createColumnTask = useCallback(
+    async (props: CreateColumnTaskProps) => {
+      if (!canCreateColumnTask) {
         return;
       }
 
-      onStart?.();
-
-      setTaskCreationState({ isLoading: true, error: undefined });
-      setBoardUpdateState({ isLoading: true });
-
-      const controller = new AbortController();
-      setCancelReqFn(() => controller.abort());
-
-      const sessionId = getSessionState().value?.sessionId || '';
-
-      const result = await boardApi.createColumnTask({
-        sessionId,
-        taskDraft,
-        signal: controller.signal,
-        boardId,
-        columnId,
-      });
-      const isAborted = controller.signal.aborted;
-
-      if (!isAborted) {
-        if (result.ok) {
-          const { task, board } = result.data;
-
-          setTasksState(({ value: prevTasks }) => {
-            if (!prevTasks) {
-              return { value: [task] };
-            }
-
-            const foundTask = prevTasks?.find((t) => t.id === task.id);
-
-            return { value: foundTask ? prevTasks : [...prevTasks, task] };
-          });
-
-          updateBoard(board);
-        } else {
-          setTaskCreationState({ error: result.error });
-        }
-      }
-
-      setTaskCreationState({ isLoading: false });
-      setBoardUpdateState({ isLoading: false });
-      onEnd?.();
-
-      return isAborted ? undefined : result;
+      return await mutateAsync(props);
     },
-    [
-      canCreateColumnTask,
-      getSessionState,
-      setBoardUpdateState,
-      setCancelReqFn,
-      setTaskCreationState,
-      setTasksState,
-      updateBoard,
-    ]
+    [canCreateColumnTask, mutateAsync]
   );
+
+  return {
+    createColumnTask,
+    isCreatingColumnTask,
+    canCreateColumnTask,
+  };
 };

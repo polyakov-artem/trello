@@ -1,45 +1,55 @@
-import { useSessionStore } from '@/entities/session';
-import { useUserDeletionStore, useUsersStore } from '@/entities/user';
+import {
+  useAuthStoreActions,
+  useLogoutContext,
+  useSessionId,
+  useSessionUserId,
+} from '@/entities/session';
 import { userApi } from '@/shared/api/user/userApi';
 import { useCallback } from 'react';
-import { useRemoveUserContext } from './RemoveUserContext';
-import { useCanRemoveUserFn } from './guards';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCanRemoveUser } from './guards';
+import { mutationKeys, queryKeys } from '@/shared/config/queries';
 
-export const useRemoveUser = () => {
-  const setUsers = useUsersStore.use.setState();
-  const setUserRemovingState = useUserDeletionStore.use.setState();
-  const getSessionStoreState = useSessionStore.use.getState();
-  const canRemoveUserFn = useCanRemoveUserFn();
+export const useRemoveUser = (userId: string) => {
+  const sessionId = useSessionId();
+  const sessionUserId = useSessionUserId();
 
-  const { logout } = useRemoveUserContext();
+  const queryClient = useQueryClient();
+  const canRemoveUser = useCanRemoveUser(userId);
+  const { setIsLoadingSession } = useAuthStoreActions();
+  const { logout } = useLogoutContext();
+  const isLoggedIn = sessionUserId === userId;
 
-  const removeUser = useCallback(
-    async (userId: string, onStart?: () => void, onEnd?: () => void) => {
-      if (!canRemoveUserFn()) {
+  const { mutateAsync, isPending: isRemovingUser } = useMutation({
+    mutationKey: mutationKeys.deleteUser({ userId, sessionId }),
+    mutationFn: async () => {
+      if (!isLoggedIn) {
+        await userApi.removeUser({ id: userId, sessionId });
         return;
       }
 
-      onStart?.();
+      setIsLoadingSession(true);
 
-      setUserRemovingState({ isLoading: true, error: undefined });
-
-      const sessionId = getSessionStoreState().value?.sessionId || '';
-      const result = await userApi.removeUser(userId, sessionId);
-
-      if (result.ok) {
-        await logout();
-        setUsers((prevState) => {
-          return { value: prevState.value?.filter((user) => user.id !== userId) };
-        });
+      try {
+        await userApi.removeUser({ id: userId, sessionId });
+        await logout({ initiatedByUser: false });
+      } finally {
+        setIsLoadingSession(false);
       }
-
-      setUserRemovingState({ isLoading: false });
-
-      onEnd?.();
-      return result;
     },
-    [canRemoveUserFn, setUserRemovingState, getSessionStoreState, logout, setUsers]
-  );
 
-  return removeUser;
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.users });
+    },
+  });
+
+  const removeUser = useCallback(async () => {
+    if (!canRemoveUser) {
+      return;
+    }
+
+    return await mutateAsync();
+  }, [canRemoveUser, mutateAsync]);
+
+  return { removeUser, isRemovingUser, canRemoveUser };
 };

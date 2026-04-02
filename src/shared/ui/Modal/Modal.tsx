@@ -7,7 +7,7 @@ import { Button } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { createPortal } from 'react-dom';
 
-export type ModalProps = {
+type ModalProps = {
   closeModal?: () => void;
   isOpen?: boolean;
   title?: string;

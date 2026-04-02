@@ -1,10 +1,9 @@
 import type { FC, PropsWithChildren } from 'react';
 
 import { useModalProps } from '@/shared/ui/Modal/useModalProps';
-import { AddBoardColumnContext, type Details } from './AddBoardColumnContext';
+import { AddBoardColumnContext } from './AddBoardColumnContext';
 
 export const AddBoardColumnProvider: FC<PropsWithChildren> = ({ children }) => {
-  const value = useModalProps<Details>();
-
+  const value = useModalProps();
   return <AddBoardColumnContext value={value}>{children}</AddBoardColumnContext>;
 };

@@ -1,28 +1,16 @@
-import { useLoginWithSavedSession } from '@/features/auth/autoLogin';
-import { useLoadSessionUser } from '@/features/user/loadSessionUser';
-import { useEffect, type FC, type PropsWithChildren } from 'react';
-import { useLoadTasks } from '@/features/task/loadTasks';
-import { useSessionStore } from '@/entities/session';
-import { useLoadBoards } from '@/features/board/loadBoards';
+import { useBoardsQuery } from '@/entities/board';
+import { useAutoLoginQuery } from '@/features/auth/autoLogin';
+import { useTasksQuery } from '@/entities/task/';
+import { useSessionUserQuery } from '@/entities/user/';
+import { useUsersQuery } from '@/entities/user/';
+import { type FC, type PropsWithChildren } from 'react';
 
 export const AppLoader: FC<PropsWithChildren> = ({ children }) => {
-  const loginWithSavedSession = useLoginWithSavedSession();
-  const loadSessionUser = useLoadSessionUser();
-  const loadTasks = useLoadTasks();
-  const loadBoards = useLoadBoards();
-  const session = useSessionStore.use.value();
+  useAutoLoginQuery();
+  useTasksQuery();
+  useSessionUserQuery();
+  useUsersQuery();
+  useBoardsQuery();
 
-  useEffect(() => {
-    void void loginWithSavedSession();
-  }, [loginWithSavedSession]);
-
-  useEffect(() => {
-    if (session) {
-      void loadSessionUser(session.userId, session.sessionId);
-      void loadTasks();
-      void loadBoards();
-    }
-  }, [loadBoards, loadSessionUser, loadTasks, session]);
-
-  return <>{children}</>;
+  return children;
 };

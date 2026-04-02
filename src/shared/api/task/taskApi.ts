@@ -3,13 +3,24 @@ import { API_URL } from '../constants';
 import type { Task, TaskDraft } from '@/shared/types/types';
 
 export const taskApi = {
-  async getTasks(sessionId: string, signal?: AbortSignal) {
+  async getTasks({ sessionId, signal }: { sessionId: string; signal?: AbortSignal }) {
     return await safeFetch<Task[]>(`${API_URL}/tasks?sessionId=${sessionId}`, {
       signal,
+      throwOnError: true,
     });
   },
 
-  async updateTask(sessionId: string, taskId: string, taskDraft: TaskDraft, signal?: AbortSignal) {
+  async updateTask({
+    sessionId,
+    taskId,
+    taskDraft,
+    signal,
+  }: {
+    sessionId: string;
+    taskId: string;
+    taskDraft: TaskDraft;
+    signal?: AbortSignal;
+  }) {
     return await safeFetch<Task>(`${API_URL}/tasks/${taskId}?sessionId=${sessionId}`, {
       method: 'PUT',
       headers: {
@@ -17,10 +28,19 @@ export const taskApi = {
       },
       body: JSON.stringify(taskDraft),
       signal,
+      throwOnError: true,
     });
   },
 
-  async deleteTasks(sessionId: string, tasksIds: string[], signal?: AbortSignal) {
+  async deleteTasks({
+    sessionId,
+    tasksIds,
+    signal,
+  }: {
+    sessionId: string;
+    tasksIds: string[];
+    signal?: AbortSignal;
+  }) {
     return await safeFetch<{ success: true }>(`${API_URL}/tasks/delete?sessionId=${sessionId}`, {
       method: 'POST',
       headers: {
@@ -28,6 +48,7 @@ export const taskApi = {
       },
       body: JSON.stringify({ tasksIds }),
       signal,
+      throwOnError: true,
     });
   },
 };

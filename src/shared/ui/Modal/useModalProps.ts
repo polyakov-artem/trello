@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-export type ModalProps<T> = {
+export type ModalProps<T = unknown> = {
   openModal: (details?: T) => void;
   closeModal: () => void;
   isOpen: boolean;
@@ -8,7 +8,7 @@ export type ModalProps<T> = {
   onCloseComplete: () => void;
 };
 
-export const useModalProps = <T>(initialDetails?: T): ModalProps<T> => {
+export const useModalProps = <T = unknown>(initialDetails?: T): ModalProps<T> => {
   const [isOpen, setIsOpen] = useState(false);
   const [details, setDetails] = useState<T | undefined>(initialDetails);
 

@@ -1,1 +1,1 @@
-export { useLoginWithSavedSession } from './model/useLoginWithSavedSession';
+export { useAutoLoginQuery } from './model/useAutoLoginQuery';

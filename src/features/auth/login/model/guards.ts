@@ -1,18 +1,18 @@
-import { useSessionStore } from '@/entities/session';
-import { useCallback } from 'react';
+import { useIsLoadingSession, useSessionId, useSessionUserId } from '@/entities/session';
+import { mutationKeys } from '@/shared/config/queries';
+import { useIsMutating } from '@tanstack/react-query';
 
-export const canLoginWithLogoutGuard = (isLoadingSession: boolean) => {
-  return !isLoadingSession;
-};
+export const useCanLogin = () => {
+  const isLoadingSession = useIsLoadingSession();
+  const sessionId = useSessionId();
+  const userId = useSessionUserId();
+  const isDeletingUser =
+    useIsMutating({
+      mutationKey: mutationKeys.deleteUser({
+        userId,
+        sessionId,
+      }),
+    }) > 0;
 
-export const useCanLoginWithLogoutFn = () => {
-  const getState = useSessionStore.use.getState();
-
-  return useCallback(() => canLoginWithLogoutGuard(getState().isLoading), [getState]);
-};
-
-export const useCanLoginWithLogout = () => {
-  const isLoading = useSessionStore.use.isLoading();
-
-  return canLoginWithLogoutGuard(isLoading);
+  return !isLoadingSession && !isDeletingUser;
 };

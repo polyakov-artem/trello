@@ -8,13 +8,13 @@ export type BtnRemoveUserProps = { id: string } & PropsWithClassName;
 export const MSG_CONFIRM_REMOVE_USER = 'Are you sure you want to remove this user?';
 
 export const BtnRemoveUser: FC<BtnRemoveUserProps> = ({ className, id }) => {
-  const { isRemoving, handleClick, isBtnDisabled } = useBtnRemoveUser(id);
+  const { isRemovingUser, handleClick, isBtnDisabled } = useBtnRemoveUser(id);
 
   return (
     <>
       <Button
         disabled={isBtnDisabled}
-        loading={isRemoving}
+        loading={isRemovingUser}
         onClick={handleClick}
         color="danger"
         variant="solid"

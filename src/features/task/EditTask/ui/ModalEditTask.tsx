@@ -1,18 +1,19 @@
 import { type FC } from 'react';
 import Modal from '@/shared/ui/Modal/Modal';
-
 import Input from 'antd/es/input/Input';
 import TextArea from 'antd/es/input/TextArea';
 import { Button, Checkbox } from 'antd';
 import { Spinner } from '@/shared/ui/Spinner/Spinner';
 import { useModalEditTask } from '../model/useModalEditTask';
+import { ErrorBanner } from '@/shared/ui/ErrorBanner/ErrorBanner';
 
 export const TITLE = 'Update task';
 
 export const ModalEditTask: FC = () => {
   const {
-    processing,
-    isLoading,
+    taskError,
+    isFetchingTask,
+    isUpdatingTask,
     closeModal,
     isOpen,
     isFormDisabled,
@@ -23,18 +24,26 @@ export const ModalEditTask: FC = () => {
     handleInputChange,
     handleCheckboxChange,
     handleSubmit,
-    handleSubmitBtnClick,
   } = useModalEditTask();
 
-  const body = (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative">
+  const body = taskError ? (
+    <ErrorBanner title={taskError.message} withDefaultIcon />
+  ) : (
+    <form onSubmit={handleSubmit}>
       {formError && <p className="text-red-500">{formError}</p>}
+
       <div>
         <label className="font-bold mb-2 block" htmlFor="title">
-          {TITLE}
+          Title
         </label>
 
-        <Input id="title" name="title" onChange={handleInputChange} value={values.title} />
+        <Input
+          id="title"
+          name="title"
+          onChange={handleInputChange}
+          value={values.title}
+          disabled={isFormDisabled}
+        />
         {titleError && <p className="text-red-500">{titleError}</p>}
       </div>
 
@@ -48,23 +57,28 @@ export const ModalEditTask: FC = () => {
           name="description"
           onChange={handleInputChange}
           value={values.description}
+          disabled={isFormDisabled}
         />
       </div>
 
-      <Checkbox onChange={handleCheckboxChange} name="completed" checked={values.completed}>
+      <Checkbox
+        onChange={handleCheckboxChange}
+        name="completed"
+        checked={values.completed}
+        disabled={isFormDisabled}>
         Completed
       </Checkbox>
-      {isLoading && <Spinner withOverlay whiteOverlay onTopMode />}
+      {isFetchingTask && <Spinner withOverlay whiteOverlay onTopMode />}
     </form>
   );
 
-  const buttons = (
+  const buttons = taskError ? undefined : (
     <>
       <Button
         type="primary"
-        loading={processing}
-        onClick={handleSubmitBtnClick}
-        disabled={isFormDisabled}>
+        loading={isUpdatingTask}
+        disabled={isFormDisabled}
+        onClick={() => handleSubmit()}>
         Update
       </Button>
       <Button type="primary" onClick={closeModal}>

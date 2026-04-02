@@ -1,41 +1,11 @@
-import { useSessionStore } from '@/entities/session';
-import { useUserDeletionStore } from '@/entities/user';
-import type { Session } from '@/shared/api/auth/authApi';
-import { useCallback, useMemo } from 'react';
+import { useSessionId } from '@/entities/session';
+import { getUserKeyObj } from '@/shared/config/queries';
+import { useIsMutating } from '@tanstack/react-query';
 
-export type CanRemoveUserGuardProps = {
-  session: Session | undefined;
-  isRemovingUser: boolean;
-};
+export const useCanRemoveUser = (userId: string) => {
+  const sessionId = useSessionId();
+  const isRemovingUser =
+    useIsMutating({ mutationKey: [getUserKeyObj({ idOrIds: userId, sessionId })] }) > 0;
 
-export const canRemoveUserGuard = ({ session, isRemovingUser }: CanRemoveUserGuardProps) => {
-  return !!session && !isRemovingUser;
-};
-
-export const useCanRemoveUserFn = () => {
-  const getUserDeletionStoreState = useUserDeletionStore.use.getState();
-  const getSessionState = useSessionStore.use.getState();
-
-  return useCallback(
-    () =>
-      canRemoveUserGuard({
-        session: getSessionState().value,
-        isRemovingUser: getUserDeletionStoreState().isLoading,
-      }),
-    [getSessionState, getUserDeletionStoreState]
-  );
-};
-
-export const useCanRemoveUser = () => {
-  const session = useSessionStore.use.value();
-  const isRemovingUser = useUserDeletionStore.use.isLoading();
-
-  return useMemo(
-    () =>
-      canRemoveUserGuard({
-        session,
-        isRemovingUser,
-      }),
-    [session, isRemovingUser]
-  );
+  return !isRemovingUser && !!sessionId;
 };

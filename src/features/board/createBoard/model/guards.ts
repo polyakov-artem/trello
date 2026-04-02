@@ -1,41 +1,13 @@
-import { useBoardCreationStore } from '@/entities/board';
-import { useSessionStore } from '@/entities/session';
-import type { Session } from '@/shared/api/auth/authApi';
-import { useCallback, useMemo } from 'react';
-
-export type CanCreateBoardGuardProps = {
-  session: Session | undefined;
-  isCreatingBoard: boolean;
-};
-
-export const canCreateBoardGuard = ({ session, isCreatingBoard }: CanCreateBoardGuardProps) => {
-  return !!session && !isCreatingBoard;
-};
-
-export const useCanCreateBoardFn = () => {
-  const getSessionState = useSessionStore.use.getState();
-  const getBoardCreationState = useBoardCreationStore.use.getState();
-
-  return useCallback(
-    () =>
-      canCreateBoardGuard({
-        session: getSessionState().value,
-        isCreatingBoard: getBoardCreationState().isLoading,
-      }),
-    [getBoardCreationState, getSessionState]
-  );
-};
+import { useSessionId } from '@/entities/session';
+import { mutationKeys } from '@/shared/config/queries';
+import { useIsMutating } from '@tanstack/react-query';
 
 export const useCanCreateBoard = () => {
-  const session = useSessionStore.use.value();
-  const isCreatingBoard = useBoardCreationStore.use.isLoading();
+  const sessionId = useSessionId();
+  const isCreatingBoard =
+    useIsMutating({
+      mutationKey: mutationKeys.createBoard({ sessionId }),
+    }) > 0;
 
-  return useMemo(
-    () =>
-      canCreateBoardGuard({
-        session,
-        isCreatingBoard,
-      }),
-    [isCreatingBoard, session]
-  );
+  return !!sessionId && !isCreatingBoard;
 };

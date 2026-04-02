@@ -1,17 +1,14 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useRemoveUser } from './useRemoveUser';
 import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
-import { useCanRemoveUser } from './guards';
 
 export const TITLE = 'User Deletion';
 export const TEXT = 'Do you really want to delete the user?';
 
 export const useBtnRemoveUser = (userId: string) => {
-  const removeUser = useRemoveUser();
-  const [isRemoving, setIsRemoving] = useState(false);
+  const { removeUser, isRemovingUser, canRemoveUser } = useRemoveUser(userId);
   const { getConfirmation } = useConfirmationContext();
-  const canRemoveUser = useCanRemoveUser();
 
   const removeHandler = useCallback(async () => {
     const confirmed = await getConfirmation({
@@ -23,27 +20,22 @@ export const useBtnRemoveUser = (userId: string) => {
       return;
     }
 
-    const result = await removeUser(
-      userId,
-      () => setIsRemoving(true),
-      () => setIsRemoving(false)
-    );
-
-    if (result?.ok === false) {
-      toast.error(result.error.message);
+    try {
+      await removeUser();
+    } catch (e) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      }
     }
-  }, [getConfirmation, removeUser, userId]);
+  }, [getConfirmation, removeUser]);
 
   const handleClick = useCallback(() => {
     void removeHandler();
   }, [removeHandler]);
 
-  return useMemo(
-    () => ({
-      isRemoving,
-      handleClick,
-      isBtnDisabled: !canRemoveUser,
-    }),
-    [isRemoving, handleClick, canRemoveUser]
-  );
+  return {
+    isRemovingUser,
+    handleClick,
+    isBtnDisabled: !canRemoveUser,
+  };
 };

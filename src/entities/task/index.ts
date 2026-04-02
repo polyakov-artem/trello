@@ -1,10 +1,12 @@
-export {
-  useTasksStore,
-  useTaskDeletionStore,
-  useTaskCreationStore,
-  useTaskUpdateStore,
-} from './model/tasksStore';
-
 export { useTasksSelectionContext } from './model/TasksSelectionContext';
 export { TasksSelectionProvider } from './model/TasksSelectionProvider';
+export { useTasksMapContext } from './model/TasksMapContext';
+export { TasksMapProvider } from './model/TasksMapProvider';
+export { useTaskLocationMapContext } from './model/TaskLocationMapContext';
+export { TaskLocationMapProvider } from './model/TaskLocationMapProvider';
+export { useIsModifyingTasks } from './model/useIsModifyingTasks';
 export { BoardTask } from './ui/BoardTask';
+export { useTasksQuery } from './model/useTasksQuery';
+export { useTaskQuery } from './model/useTaskQuery';
+export { useTasksByColumnIdMapContext } from './model/TasksByColumnIdMapContext';
+export { TasksByColumnIdMapProvider } from './model/TasksByColumnIdMapProvider';

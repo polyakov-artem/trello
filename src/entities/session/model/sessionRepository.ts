@@ -1,18 +1,27 @@
 import type { Session } from '@/shared/api/auth/authApi';
-import localForage from 'localforage';
 
 const SESSIONS_STORAGE_KEY = 'client_trello_session';
 
 export const sessionRepository = {
-  loadSession: async () => {
-    return (await localForage.getItem<Session>(SESSIONS_STORAGE_KEY)) || undefined;
+  loadSession: () => {
+    const dataRaw = localStorage.getItem(SESSIONS_STORAGE_KEY);
+
+    if (dataRaw) {
+      try {
+        return JSON.parse(dataRaw) as Session;
+      } catch {
+        // ignore
+      }
+    }
+
+    return null;
   },
 
-  saveSession: async (session: Session) => {
-    return await localForage.setItem(SESSIONS_STORAGE_KEY, session);
+  saveSession: (session: Session) => {
+    return localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(session));
   },
 
-  removeSession: async () => {
-    return await localForage.removeItem(SESSIONS_STORAGE_KEY);
+  removeSession: () => {
+    return localStorage.removeItem(SESSIONS_STORAGE_KEY);
   },
 };

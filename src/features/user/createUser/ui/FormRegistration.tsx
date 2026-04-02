@@ -9,12 +9,12 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
   const {
     values,
     formError,
-    isCreatingUser,
+    isRegistering,
     nameError,
     avatarError,
     handleInputChange,
     handleSubmit,
-    isGlobalDisabled,
+    isFormDisabled,
   } = useFormRegistration();
 
   return (
@@ -29,7 +29,7 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
           id="name"
           name="name"
           placeholder="Name"
-          disabled={isGlobalDisabled}
+          disabled={isFormDisabled}
           onChange={handleInputChange}
           value={values.name}
         />
@@ -47,11 +47,11 @@ export const FormRegistration: FC<PropsWithClassName> = ({ className }) => {
       </div>
 
       <Button
-        disabled={isGlobalDisabled}
+        disabled={isFormDisabled}
         className="self-center"
         type="primary"
         htmlType="submit"
-        loading={isCreatingUser}
+        loading={isRegistering}
         iconPosition={'end'}>
         Register
       </Button>

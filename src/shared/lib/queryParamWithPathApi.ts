@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 
-// For query params like ?selTasks=A|B|C|1,2;C|D|E|3, where tasks 1,2 can be found by path A|B|C and tasks 3,4 can be found by path D|E|E.
+// For query params like ?selTasks=A|B|C|1,2;C|D|E|3,4 where tasks 1,2 can be found by path A|B|C and tasks 3,4 can be found by path D|E|E.
 
 type SelectionMap = Map<string, Set<string>>;
 // key = serializedPath (A|B|C)
