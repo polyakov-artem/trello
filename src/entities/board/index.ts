@@ -1,21 +1,7 @@
-export {
-  useBoardsStore,
-  useBoardDeletionStore,
-  useBoardCreationStore,
-  useBoardUpdateStore,
-} from './model/boardsStore';
-
-export {
-  useBoardsError,
-  useBoardsIsLoading,
-  useBoard,
-  useBoardIsLoading,
-  useBoardError,
-  useBoardsStoreActions,
-  useBoardsEntities,
-  useBoardsIds,
-  useBoardsArray,
-} from './model/boardsSelectors';
-
-export { useUpdateBoard } from './model/useUpdateBoard';
 export { UNASSIGNED_TASKS_COLUMN_ID } from './config/columnsIds';
+export { useIsModifyingBoards } from './model/useIsModifyingBoards';
+export { useBoardQuery } from './model/useBoardQuery';
+export { useBoardsQuery } from './model/useBoardsQuery';
+export { useBoard } from './model/useBoard';
+export { BoardsMapProvider } from './model/BoardsMapProvider';
+export { useBoardsMapContext } from './model/BoardsMapContext';

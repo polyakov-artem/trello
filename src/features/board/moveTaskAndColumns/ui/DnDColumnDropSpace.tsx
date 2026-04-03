@@ -1,8 +1,9 @@
 import type { PropsWithClassName } from '@/shared/types/types';
 import clsx from 'clsx';
 import { useMemo, type FC } from 'react';
-import { InsertionType, TYPE_COLUMN_DROP_SPACE, TYPE_COLUMN } from '../config/dndConstants';
+import { TYPE_COLUMN_DROP_SPACE, TYPE_COLUMN } from '../config/dndConstants';
 import { useDroppable } from '@dnd-kit/react';
+import { InsertionType } from '@/shared/api/board/boardApi';
 
 export type DnDColumnDropSpaceProps = {
   id: string;

@@ -1,9 +1,9 @@
-import type { Task } from '@/shared/types/types';
 import type { PropsWithClassName } from '@/shared/types/types';
 import { useMemo, type FC, type ReactNode } from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
-import { InsertionType, TYPE_TASK } from '../config/dndConstants';
-import { BoardTask } from '@/entities/task';
+import { TYPE_TASK } from '../config/dndConstants';
+import { BoardTask, useTasksMapContext } from '@/entities/task';
+import { InsertionType } from '@/shared/api/board/boardApi';
 
 const colorGray = 'oklch(98.5% 0.002 247.839)';
 
@@ -19,39 +19,38 @@ const dropStyles = {
 };
 
 export type DnDTaskProps = {
-  task: Task;
-  index: number;
-  columnIndex: number;
+  taskId: string;
   columnId: string;
+  taskIndex: number;
   actionsBefore?: ReactNode;
   actionsAfter?: ReactNode;
 } & PropsWithClassName;
 
 export const DnDTask: FC<DnDTaskProps> = ({
   className,
-  task,
-  columnIndex,
-  index,
+  taskId,
   columnId,
   actionsAfter,
   actionsBefore,
+  taskIndex,
 }) => {
+  const tasksMap = useTasksMapContext();
+  const task = tasksMap[taskId];
+
   const { ref, isDropTarget, isDragging } = useSortable({
-    id: task.id,
+    id: taskId,
     type: TYPE_TASK,
     accept: (source) => {
-      if (source.type === TYPE_TASK && source.id !== task.id) {
+      if (source.type === TYPE_TASK && source.id !== taskId) {
         return true;
       }
 
       return false;
     },
-    index,
+    index: taskIndex,
     data: {
       subject: TYPE_TASK,
-      taskId: task.id,
-      taskIndex: index,
-      columnIndex,
+      taskId,
       columnId,
       insertionType: InsertionType.swap,
     },

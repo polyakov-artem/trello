@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useUserCreationStore } from '@/entities/user';
 import { useRegisterUser } from './useRegisterUser';
-import { useCanCreateUser } from './guards';
+import { isFetchError } from '@/shared/lib/safeFetch';
 
 const signupSchema = Yup.object().shape({
   name: Yup.string()
@@ -19,9 +18,7 @@ const defaultFormState = {
 };
 
 export const useFormRegistration = () => {
-  const registerUser = useRegisterUser();
-  const isCreatingUser = useUserCreationStore.use.isLoading();
-  const canCreateUser = useCanCreateUser();
+  const { registerUser, isRegistering, canCreateUser } = useRegisterUser();
 
   const [formError, setFormError] = useState('');
 
@@ -29,35 +26,32 @@ export const useFormRegistration = () => {
     initialValues: defaultFormState,
     validationSchema: signupSchema,
     onSubmit: async (values, { resetForm, setFieldError }) => {
-      const result = await registerUser(values, () => setFormError(''));
-
-      if (!result) {
-        return;
-      }
-
-      if (result.ok === true) {
+      try {
+        setFormError('');
+        await registerUser(values);
         resetForm();
-        return;
-      }
-
-      const errors = result.error.errors;
-
-      if (errors) {
-        errors.forEach((error) => {
-          setFieldError(error.field, error.message);
-        });
-      } else {
-        setFormError(result.error.message);
+      } catch (e) {
+        if (isFetchError(e)) {
+          if (e.errors) {
+            e.errors.forEach((error) => {
+              setFieldError(error.field, error.message);
+            });
+          } else {
+            setFormError(e.message);
+          }
+        }
       }
     },
   });
 
+  const { values, touched, errors, handleSubmit, setFieldValue } = formik;
+
   const handleFieldChange = useCallback(
     (name: string, value: string[] | string | boolean) => {
       setFormError('');
-      void formik.setFieldValue(name, value);
+      void setFieldValue(name, value);
     },
-    [formik]
+    [setFieldValue]
   );
 
   const handleInputChange = useCallback(
@@ -69,26 +63,26 @@ export const useFormRegistration = () => {
 
   return useMemo(
     () => ({
-      values: formik.values,
+      values,
       formError,
-      isCreatingUser,
-      nameError: formik.errors.name && formik.touched.name ? formik.errors.name : '',
-      avatarError: formik.errors.avatarId && formik.touched.avatarId ? formik.errors.avatarId : '',
+      isRegistering,
+      nameError: errors.name && touched.name ? errors.name : '',
+      avatarError: errors.avatarId && touched.avatarId ? errors.avatarId : '',
       handleInputChange,
-      handleSubmit: formik.handleSubmit,
-      isGlobalDisabled: !canCreateUser,
+      handleSubmit,
+      isFormDisabled: !canCreateUser,
     }),
     [
       canCreateUser,
+      errors.avatarId,
+      errors.name,
       formError,
-      formik.errors.avatarId,
-      formik.errors.name,
-      formik.handleSubmit,
-      formik.touched.avatarId,
-      formik.touched.name,
-      formik.values,
       handleInputChange,
-      isCreatingUser,
+      handleSubmit,
+      isRegistering,
+      touched.avatarId,
+      touched.name,
+      values,
     ]
   );
 };

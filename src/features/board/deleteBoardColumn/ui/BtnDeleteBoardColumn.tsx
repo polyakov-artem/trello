@@ -5,31 +5,23 @@ import { useBtnDeleteBoardColumn } from '../model/useBtnDeleteBoardColumn';
 import type { BaseButtonProps } from 'antd/es/button/button';
 
 export type BtnDeleteBoardColumnProps = {
-  boardId: string;
   columnId: string;
   size?: BaseButtonProps['size'];
-  columnHasTasks: boolean;
 } & PropsWithClassName &
   PropsWithChildren;
 
 export const BtnDeleteBoardColumn: FC<BtnDeleteBoardColumnProps> = ({
   className,
-  boardId,
   columnId,
   size,
   children,
-  columnHasTasks,
 }) => {
-  const { isProcessing, handleClick, isDisabled } = useBtnDeleteBoardColumn(
-    boardId,
-    columnId,
-    columnHasTasks
-  );
+  const { isDeletingBoardColumn, handleClick, isDisabled } = useBtnDeleteBoardColumn(columnId);
 
   return (
     <Button
       size={size}
-      loading={isProcessing}
+      loading={isDeletingBoardColumn}
       disabled={isDisabled}
       onClick={handleClick}
       color="red"

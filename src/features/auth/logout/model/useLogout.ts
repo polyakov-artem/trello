@@ -1,86 +1,66 @@
-import {
-  useBoardCreationStore,
-  useBoardDeletionStore,
-  useBoardsStoreActions,
-  useBoardUpdateStore,
-} from '@/entities/board';
-import { sessionRepository, useSessionStore } from '@/entities/session';
-import {
-  useTaskCreationStore,
-  useTaskDeletionStore,
-  useTasksStore,
-  useTaskUpdateStore,
-} from '@/entities/task';
-import { useSessionUserStore } from '@/entities/user';
+import { sessionRepository, useAuthStoreActions, useSessionId } from '@/entities/session';
 import { authApi } from '@/shared/api/auth/authApi';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { mutationKeys } from '@/shared/config/queries';
+import { useCanLogout } from './guards';
 import { useCallback } from 'react';
-import { useCanLogoutFn } from './guards';
+
+type LogoutProps = {
+  initiatedByUser: boolean;
+};
 
 export const useLogout = () => {
-  const setSessionState = useSessionStore.setState;
-  const getSessionState = useSessionStore.getState;
+  const queryClient = useQueryClient();
 
-  const resetSessionStore = useSessionStore.use.reset();
-  const resetSessionUserStore = useSessionUserStore.use.reset();
+  const sessionId = useSessionId();
+  const { setIsLoadingSession, removeSession } = useAuthStoreActions();
 
-  const resetTasksStore = useTasksStore.use.reset();
-  const resetTaskCreationStore = useTaskCreationStore.use.reset();
-  const resetTaskDeletionStore = useTaskDeletionStore.use.reset();
-  const resetTaskUpdateStore = useTaskUpdateStore.use.reset();
+  const { mutateAsync, isPending: isLoggingOut } = useMutation({
+    mutationKey: mutationKeys.logout({ sessionId }),
+    mutationFn: async ({ initiatedByUser }: LogoutProps) => {
+      if (initiatedByUser) {
+        setIsLoadingSession(true);
+      }
 
-  const resetBoardsStore = useBoardsStoreActions().reset;
-  const resetBoardCreationStore = useBoardCreationStore.use.reset();
-  const resetBoardDeletionStore = useBoardDeletionStore.use.reset();
-  const resetBoardUpdateStore = useBoardUpdateStore.use.reset();
+      removeSession();
+      sessionRepository.removeSession();
+      await queryClient.cancelQueries({ queryKey: [sessionId] });
+      queryClient.removeQueries({ queryKey: [sessionId] });
 
-  const canLogoutFn = useCanLogoutFn();
+      if (sessionId) {
+        try {
+          await authApi.logout({ sessionId });
+        } catch {
+          // ignore
+        }
+      }
+
+      if (initiatedByUser) {
+        setIsLoadingSession(false);
+      }
+    },
+  });
+
+  const canLogout = useCanLogout();
 
   const logout = useCallback(
-    async (onStart?: () => void, onEnd?: () => void, forcibly = false) => {
-      if (!forcibly && !canLogoutFn()) {
+    async ({ initiatedByUser }: LogoutProps) => {
+      if (initiatedByUser && !canLogout) {
         return;
       }
 
-      onStart?.();
-
-      resetSessionStore();
-      resetSessionUserStore();
-
-      resetTasksStore();
-      resetTaskCreationStore();
-      resetTaskDeletionStore();
-      resetTaskUpdateStore();
-
-      resetBoardsStore();
-      resetBoardCreationStore();
-      resetBoardDeletionStore();
-      resetBoardUpdateStore();
-
-      setSessionState({ isLoading: true });
-      await authApi.logout(getSessionState().value?.sessionId || '');
-      await sessionRepository.removeSession();
-      setSessionState({ isLoading: false });
-
-      onEnd?.();
-
-      return { success: true };
+      try {
+        await mutateAsync({ initiatedByUser });
+      } catch (e) {
+        console.log('Logout error', e);
+      }
     },
-    [
-      canLogoutFn,
-      resetSessionStore,
-      resetSessionUserStore,
-      resetTasksStore,
-      resetTaskCreationStore,
-      resetTaskDeletionStore,
-      resetTaskUpdateStore,
-      resetBoardsStore,
-      resetBoardCreationStore,
-      resetBoardDeletionStore,
-      resetBoardUpdateStore,
-      setSessionState,
-      getSessionState,
-    ]
+    [canLogout, mutateAsync]
   );
 
-  return logout;
+  return {
+    logout,
+    isLoggingOut,
+    canLogout,
+  };
 };

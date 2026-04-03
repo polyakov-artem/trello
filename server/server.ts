@@ -65,14 +65,14 @@ type DeleteTasksBody = {
   tasksIds: string[];
 };
 
-const insertionType = {
+const insType = {
   swap: 'swap',
   before: 'before',
   append: 'append',
 };
 
 type MoveTaskBody = {
-  operationType: string;
+  insertionType: string;
   srcColumnId: string;
   targetColumnId: string;
   srcTaskId: string;
@@ -80,7 +80,7 @@ type MoveTaskBody = {
 };
 
 type MoveColumnBody = {
-  operationType: string;
+  insertionType: string;
   srcColumnId: string;
   targetColumnId: string;
 };
@@ -530,7 +530,19 @@ app.delete(`/boards/:${PARAM_BOARD_ID}`, async (req, res) => {
   const { board, boards } = await requireBoard(req, res);
   if (!board) return;
 
+  const tasksByTaskIdMap = (await db.tasks()).reduce(
+    (acc, task) => ({ ...acc, [task.id]: task }),
+    {} as Record<string, Task>
+  );
+
+  board.columns.forEach((c) => {
+    c.tasksIds.forEach((taskId) => {
+      delete tasksByTaskIdMap[taskId];
+    });
+  });
+
   await db.saveBoards(boards.filter((b) => b.id !== board.id));
+  await db.saveTasks(Object.values(tasksByTaskIdMap));
   res.json({ data: { success: true } });
 });
 
@@ -634,7 +646,7 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/tasks`, async (req, res) => {
   if (!board) return;
 
   const { columns } = board;
-  const { srcColumnId, targetColumnId, srcTaskId, targetTaskId, operationType } =
+  const { srcColumnId, targetColumnId, srcTaskId, targetTaskId, insertionType } =
     req.body as MoveTaskBody;
 
   const allTasks = await db.tasks();
@@ -648,7 +660,7 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/tasks`, async (req, res) => {
 
   const srcExists = allTasks.some((t) => t.id === srcTaskId);
   const targetExists =
-    operationType === insertionType.append ||
+    insertionType === insType.append ||
     (targetTaskId && allTasks.some((t) => t.id === targetTaskId));
 
   if (!srcExists || !targetExists) {
@@ -668,7 +680,7 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/tasks`, async (req, res) => {
     return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
   }
 
-  if (operationType === insertionType.swap) {
+  if (insertionType === insType.swap) {
     if (!targetTaskId) {
       return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
     }
@@ -686,9 +698,9 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/tasks`, async (req, res) => {
   } else {
     srcColumn.tasksIds.splice(srcIndex, 1);
 
-    if (operationType === insertionType.append) {
+    if (insertionType === insType.append) {
       targetColumn.tasksIds.push(srcTaskId);
-    } else if (operationType === insertionType.before) {
+    } else if (insertionType === insType.before) {
       if (!targetTaskId) {
         return res.status(400).json({ error: ERROR_TASK_NOT_FOUND });
       }
@@ -716,7 +728,7 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/columns`, async (req, res) => {
   if (!board) return;
 
   const { columns } = board;
-  const { srcColumnId, targetColumnId, operationType } = req.body as MoveColumnBody;
+  const { srcColumnId, targetColumnId, insertionType } = req.body as MoveColumnBody;
 
   const srcColumnIndex = columns.findIndex((c) => c.id === srcColumnId);
   const targetColumnIndex = columns.findIndex((c) => c.id === targetColumnId);
@@ -725,7 +737,7 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/columns`, async (req, res) => {
     return res.status(400).json({ error: ERROR_COLUMN_NOT_FOUND });
   }
 
-  if (operationType === insertionType.swap) {
+  if (insertionType === insType.swap) {
     if (srcColumnId === targetColumnId) {
       return res.json({ data: board });
     }
@@ -737,9 +749,9 @@ app.put(`/boards/:${PARAM_BOARD_ID}/move/columns`, async (req, res) => {
   } else {
     const [srcColumn] = columns.splice(srcColumnIndex, 1);
 
-    if (operationType === insertionType.append) {
+    if (insertionType === insType.append) {
       columns.push(srcColumn);
-    } else if (operationType === insertionType.before) {
+    } else if (insertionType === insType.before) {
       const insertIndex =
         srcColumnIndex < targetColumnIndex ? targetColumnIndex - 1 : targetColumnIndex;
 

@@ -19,7 +19,7 @@ export const ModalCreateColumnTask: FC = () => {
     handleSubmitBtnClick,
     closeModal,
     isFormDisabled,
-    isProcessing,
+    isCreatingColumnTask,
     isOpen,
   } = useModalCreateColumnTask();
 
@@ -37,6 +37,7 @@ export const ModalCreateColumnTask: FC = () => {
           onChange={handleInputChange}
           value={values.title}
           disabled={isFormDisabled}
+          autoFocus={true}
         />
         {titleError && <p className="text-red-500">{titleError}</p>}
       </div>
@@ -68,7 +69,7 @@ export const ModalCreateColumnTask: FC = () => {
   const buttons = (
     <>
       <Button
-        loading={isProcessing}
+        loading={isCreatingColumnTask}
         disabled={isFormDisabled}
         type="primary"
         onClick={handleSubmitBtnClick}>

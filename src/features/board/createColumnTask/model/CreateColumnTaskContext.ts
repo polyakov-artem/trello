@@ -2,7 +2,6 @@ import { createStrictContext, useStrictContext } from '@/shared/lib/reactStrictC
 import type { ModalProps } from '@/shared/ui/Modal/useModalProps';
 
 export type Details = {
-  boardId: string;
   columnId: string;
 };
 

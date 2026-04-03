@@ -1,32 +1,12 @@
 import { Button } from 'antd';
-import { useCallback, useState, type FC } from 'react';
-import { useCanLogout } from '../model/guards';
+import { type FC } from 'react';
 import { useLogout } from '../model/useLogout';
 import type { BaseButtonProps } from 'antd/es/button/button';
 
-export type BtnLogoutProps = Omit<BaseButtonProps, 'onClick' | 'loading' | 'disabled'> & {
-  forcibly?: boolean;
-};
+export type BtnLogoutProps = Omit<BaseButtonProps, 'onClick' | 'loading' | 'disabled'>;
 
-export const BtnLogout: FC<BtnLogoutProps> = ({ forcibly, ...props }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const canLogout = useCanLogout();
-
-  const logout = useLogout();
-
-  const logoutHandler = useCallback(async () => {
-    await logout(
-      () => setIsLoading(true),
-      () => setIsLoading(false),
-      forcibly
-    );
-  }, [logout, forcibly]);
-
-  const handleClick = useCallback(() => {
-    void logoutHandler();
-  }, [logoutHandler]);
-
-  const disabled = isLoading || (!forcibly && !canLogout) ? true : false;
+export const BtnLogout: FC<BtnLogoutProps> = ({ ...props }) => {
+  const { logout, isLoggingOut, canLogout } = useLogout();
 
   return (
     <>
@@ -35,9 +15,11 @@ export const BtnLogout: FC<BtnLogoutProps> = ({ forcibly, ...props }) => {
         variant="solid"
         iconPosition={'end'}
         {...props}
-        disabled={disabled}
-        loading={isLoading}
-        onClick={handleClick}
+        disabled={!canLogout}
+        loading={isLoggingOut}
+        onClick={() => {
+          void logout({ initiatedByUser: true });
+        }}
       />
     </>
   );

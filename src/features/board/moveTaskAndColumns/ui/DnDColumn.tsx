@@ -1,4 +1,3 @@
-import type { Task } from '@/shared/types/types';
 import type { PropsWithClassName } from '@/shared/types/types';
 import clsx from 'clsx';
 import { useMemo, type FC, type ReactNode } from 'react';
@@ -13,13 +12,16 @@ import { BoardColumn } from '@/entities/column';
 import {
   getTaskDropSpaceId,
   getListId,
-  InsertionType,
   TYPE_COLUMN,
   TYPE_TASK_LIST,
   TYPE_TASK,
 } from '../config/dndConstants';
 import { DnDTaskDropSpace } from './DnDTaskDropSpace';
 import { DnDTask } from './DnDTask';
+import { useTasksByColumnIdMapContext } from '@/entities/task';
+import { useBoard } from '@/entities/board';
+import type { ColumnElData, TaskElData } from '../model/DnDProvider';
+import { InsertionType } from '@/shared/api/board/boardApi';
 
 const colorGray = 'oklch(98.5% 0.002 247.839)';
 
@@ -35,8 +37,6 @@ const columnDropStyles = {
 
 export type DnDColumnProps = {
   title: string;
-  tasksIds: string[];
-  tasksMap: Record<string, Task>;
   columnId: string;
   columnIndex: number;
   topActions?: ReactNode;
@@ -47,14 +47,15 @@ export type DnDColumnProps = {
 export const DnDColumn: FC<DnDColumnProps> = ({
   className,
   title,
-  tasksIds,
-  tasksMap,
   topActions,
   bottomActions,
   columnId,
   columnIndex,
   isSortable = true,
 }) => {
+  const tasksIds = useTasksByColumnIdMapContext()[columnId];
+  const boardId = useBoard().id;
+
   const items = useMemo(() => {
     return tasksIds.reduce((acc, taskId, index) => {
       const dropSpaceBeforeId = getTaskDropSpaceId(InsertionType.before, taskId);
@@ -64,25 +65,21 @@ export const DnDColumn: FC<DnDColumnProps> = ({
         <DnDTaskDropSpace
           key={dropSpaceBeforeId}
           id={dropSpaceBeforeId}
-          columnIndex={columnIndex}
           columnId={columnId}
           prevTaskId={tasksIds[index - 1]}
-          nextTaskId={taskId}
-          taskIndex={index}
           taskId={taskId}
           insertionType={InsertionType.before}
         />,
         <DnDTask
           key={taskId}
           className="w-full flex-none max-w-full"
-          columnIndex={columnIndex}
           columnId={columnId}
-          task={tasksMap[taskId]}
-          index={index}
+          taskId={taskId}
+          taskIndex={index}
           actionsBefore={<TaskSelector columnId={columnId} taskId={taskId} className="flex-none" />}
           actionsAfter={
             <>
-              <BtnDeleteTask taskId={taskId} size={'small'}>
+              <BtnDeleteTask taskId={taskId} boardId={boardId} size={'small'}>
                 <DeleteOutlined />
               </BtnDeleteTask>
               <BtnEditTask taskId={taskId} size={'small'}>
@@ -98,10 +95,7 @@ export const DnDColumn: FC<DnDColumnProps> = ({
           <DnDTaskDropSpace
             key={dropSpaceAppendId}
             id={dropSpaceAppendId}
-            columnIndex={columnIndex}
             columnId={columnId}
-            prevTaskId={taskId}
-            taskIndex={index}
             taskId={taskId}
             insertionType={InsertionType.append}
           />
@@ -110,7 +104,7 @@ export const DnDColumn: FC<DnDColumnProps> = ({
 
       return acc;
     }, [] as ReactNode[]);
-  }, [columnId, tasksIds, tasksMap, columnIndex]);
+  }, [tasksIds, columnId, boardId]);
 
   const {
     ref: columnRef,
@@ -131,10 +125,9 @@ export const DnDColumn: FC<DnDColumnProps> = ({
     collisionPriority: CollisionPriority.Lowest,
     data: {
       subject: TYPE_COLUMN,
-      columnIndex,
       columnId,
       insertionType: InsertionType.swap,
-    },
+    } satisfies ColumnElData,
   });
 
   const { isDropTarget: listIsDropTarget, ref: listRef } = useDroppable({
@@ -150,9 +143,8 @@ export const DnDColumn: FC<DnDColumnProps> = ({
     data: {
       subject: TYPE_TASK,
       columnId,
-      columnIndex,
       insertionType: InsertionType.append,
-    },
+    } satisfies TaskElData,
   });
 
   const columnStyles = useMemo(() => {

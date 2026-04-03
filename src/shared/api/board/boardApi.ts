@@ -89,7 +89,7 @@ export type MoveBoardTaskBodyProps = {
   targetColumnId: string;
   srcTaskId: string;
   targetTaskId?: string;
-  operationType: InsertionType;
+  insertionType: InsertionType;
 };
 
 export type MoveBoardTaskProps = {
@@ -101,7 +101,7 @@ export type MoveBoardTaskProps = {
 export type MoveBoardColumnBodyProps = {
   srcColumnId: string;
   targetColumnId: string;
-  operationType: InsertionType;
+  insertionType: InsertionType;
 };
 
 export type MoveBoardColumnProps = {
@@ -114,6 +114,7 @@ export const boardApi = {
   async getBoards({ sessionId, signal }: GetBoardsProps) {
     return await safeFetch<Board[]>(`${API_URL}/boards?sessionId=${sessionId}`, {
       signal,
+      throwOnError: true,
     });
   },
 
@@ -125,6 +126,7 @@ export const boardApi = {
       },
       body: JSON.stringify(boardDraft),
       signal,
+      throwOnError: true,
     });
   },
 
@@ -136,6 +138,7 @@ export const boardApi = {
       },
       body: JSON.stringify(boardDraft),
       signal,
+      throwOnError: true,
     });
   },
 
@@ -145,6 +148,7 @@ export const boardApi = {
       {
         method: 'DELETE',
         signal,
+        throwOnError: true,
       }
     );
   },
@@ -157,6 +161,7 @@ export const boardApi = {
       },
       body: JSON.stringify(columnDraft),
       signal,
+      throwOnError: true,
     });
   },
 
@@ -172,6 +177,7 @@ export const boardApi = {
       {
         method: 'DELETE',
         signal,
+        throwOnError: true,
       }
     );
   },
@@ -193,6 +199,7 @@ export const boardApi = {
 
         body: JSON.stringify(columnDraft),
         signal,
+        throwOnError: true,
       }
     );
   },
@@ -214,6 +221,7 @@ export const boardApi = {
 
         body: JSON.stringify(taskDraft),
         signal,
+        throwOnError: true,
       }
     );
   },
@@ -228,6 +236,7 @@ export const boardApi = {
         },
         body: JSON.stringify(bodyProps),
         signal,
+        throwOnError: true,
       }
     );
   },
@@ -242,6 +251,7 @@ export const boardApi = {
         },
         body: JSON.stringify(bodyProps),
         signal,
+        throwOnError: true,
       }
     );
   },

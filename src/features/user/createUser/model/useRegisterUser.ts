@@ -1,48 +1,47 @@
-import { useUserCreationStore, useUsersStore } from '@/entities/user';
-import { userApi } from '@/shared/api/user/userApi';
-import type { UserWithoutId } from '@/shared/api/user/userApi';
+import { userApi, type User } from '@/shared/api/user/userApi';
+import { mutationKeys, queryKeys } from '@/shared/config/queries';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCanCreateUser } from './guards';
 import { useCallback } from 'react';
-import { useCanCreateUserFn } from './guards';
 
 export const useRegisterUser = () => {
-  const setUsersState = useUsersStore.use.setState();
-  const setUserCreationState = useUserCreationStore.use.setState();
-  const canCreateUserFn = useCanCreateUserFn();
+  const queryClient = useQueryClient();
+  const canCreateUser = useCanCreateUser();
+
+  const {
+    mutateAsync,
+    isPending: isRegistering,
+    error: registrationError,
+  } = useMutation({
+    mutationKey: mutationKeys.createUser,
+    mutationFn: async (userDraft: { name: string; avatarId: string }) => {
+      const newUser = (await userApi.registerUser({ userDraft })).data;
+
+      const prevData = queryClient.getQueryData<User[]>(queryKeys.users);
+      queryClient.setQueryData(queryKeys.users, prevData ? [...prevData, newUser] : [newUser]);
+      return newUser;
+    },
+
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.users });
+    },
+  });
 
   const registerUser = useCallback(
-    async (user: UserWithoutId, onStart?: () => void, onEnd?: () => void) => {
-      if (!canCreateUserFn()) {
+    (userDraft: { name: string; avatarId: string }) => {
+      if (!canCreateUser) {
         return;
       }
 
-      onStart?.();
-
-      setUserCreationState({ isLoading: true, error: undefined });
-      const result = await userApi.registerUser(user);
-
-      if (result.ok) {
-        const createdUser = result.data;
-
-        setUsersState(({ value: prevUsers }) => {
-          if (!prevUsers) {
-            return { value: [createdUser] };
-          }
-
-          const foundUser = prevUsers.find((user) => user.id === createdUser.id);
-
-          return { value: foundUser ? prevUsers : [...prevUsers, createdUser] };
-        });
-      } else {
-        setUsersState({ error: result.error });
-      }
-
-      setUserCreationState({ isLoading: false });
-
-      onEnd?.();
-      return result;
+      return mutateAsync(userDraft);
     },
-    [canCreateUserFn, setUserCreationState, setUsersState]
+    [mutateAsync, canCreateUser]
   );
 
-  return registerUser;
+  return {
+    registerUser,
+    isRegistering,
+    registrationError,
+    canCreateUser,
+  };
 };

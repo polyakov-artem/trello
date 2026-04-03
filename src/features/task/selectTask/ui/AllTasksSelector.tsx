@@ -1,10 +1,13 @@
 import { useCallback, useMemo, type FC } from 'react';
 import { Checkbox } from 'antd';
 import type { CheckboxProps } from 'antd';
-import { useTasksSelectionContext } from '@/entities/task';
+import { useTasksByColumnIdMapContext, useTasksSelectionContext } from '@/entities/task';
 
-const useAllTaskSelector = (columnId: string, tasksIds: string[]) => {
+const emptyTasksIds: string[] = [];
+
+const useAllTaskSelector = (columnId: string) => {
   const queryParamApi = useTasksSelectionContext();
+  const tasksIds = useTasksByColumnIdMapContext()[columnId] || emptyTasksIds;
 
   const handleChange = useCallback(() => {
     queryParamApi.toggleValues([columnId], tasksIds, false);
@@ -21,12 +24,11 @@ const useAllTaskSelector = (columnId: string, tasksIds: string[]) => {
 
 export type AllTaskSelectorProps = Omit<CheckboxProps, 'onChange' | 'checked' | 'disabled'> & {
   columnId: string;
-  tasksIds: string[];
 };
 
 export const AllTasksSelector: FC<AllTaskSelectorProps> = (props) => {
-  const { columnId, tasksIds, ...restProps } = props;
-  const { handleChange, checked, disabled } = useAllTaskSelector(columnId, tasksIds);
+  const { columnId, ...restProps } = props;
+  const { handleChange, checked, disabled } = useAllTaskSelector(columnId);
 
   return <Checkbox {...restProps} onChange={handleChange} checked={checked} disabled={disabled} />;
 };

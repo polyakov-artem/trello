@@ -19,7 +19,7 @@ export type FieldError = {
   message: string;
 };
 
-export type FetchError = {
+export type FetchErrorProps = {
   name: string;
   message: string;
   status?: number;
@@ -44,6 +44,21 @@ export type ResultWithError = {
 };
 
 export type FetchResult<T> = ResultWithData<T> | ResultWithError;
+
+export class FetchError extends Error {
+  public name: string;
+  public status?: number;
+  public statusText?: string;
+  public errors?: FieldError[];
+
+  constructor({ name, message, status, statusText, errors }: FetchErrorProps) {
+    super(message);
+    this.name = name;
+    this.status = status;
+    this.statusText = statusText;
+    this.errors = errors;
+  }
+}
 
 export const isObject = (value: unknown): value is object =>
   typeof value === 'object' && value !== null;
@@ -117,43 +132,58 @@ export async function parseResponseSafe<T>(
   }
 }
 
-export async function safeFetch<T>(url: string, options?: RequestInit): Promise<FetchResult<T>> {
+export type SafeFetchOptions = RequestInit & {
+  throwOnError?: boolean;
+};
+
+export function safeFetch<T>(
+  url: string,
+  options: SafeFetchOptions & { throwOnError: true }
+): Promise<ResultWithData<T>>;
+
+export function safeFetch<T>(url: string, options?: SafeFetchOptions): Promise<FetchResult<T>>;
+
+export async function safeFetch<T>(
+  url: string,
+  options?: SafeFetchOptions
+): Promise<FetchResult<T>> {
+  const shouldThrow = options?.throwOnError;
+
+  const handleError = (error: FetchError): FetchResult<T> => {
+    if (shouldThrow) {
+      throw error;
+    }
+    return { ok: false, error };
+  };
+
   try {
     const response = await fetch(url, options);
 
-    // Non-OK HTTP responses
     if (!response.ok) {
       const errorParsingResult = await parseResponseSafe<ServerResponse<T>>(response);
 
-      const errorResult: FetchResult<T> = {
-        ok: false as const,
-        error: {
-          name: errorNames.http,
-          status: response.status,
-          statusText: response.statusText,
-          message: `${errorMessages.http}: ${response.status} ${response.statusText || 'Unknown'}`,
-        },
-      };
+      const error = new FetchError({
+        name: errorNames.http,
+        status: response.status,
+        statusText: response.statusText,
+        message: `${errorMessages.http}: ${response.status} ${response.statusText || 'Unknown'}`,
+      });
 
       if (errorParsingResult.ok) {
-        const { error, errors } = errorParsingResult.data;
+        const { error: errMsg, errors } = errorParsingResult.data;
 
-        const hasErrorMsg = typeof error === 'string' && !!error;
-        const hasFieldsErrors = Array.isArray(errors) && !!errors.length;
-
-        if (hasErrorMsg) {
-          errorResult.error.message = error;
+        if (typeof errMsg === 'string' && errMsg) {
+          error.message = errMsg;
         }
 
-        if (hasFieldsErrors) {
-          errorResult.error.errors = errors;
+        if (Array.isArray(errors) && errors.length) {
+          error.errors = errors;
         }
       }
 
-      return errorResult;
+      return handleError(error);
     }
 
-    // OK responses
     if (isNoContent(response)) {
       return createResultWithData(undefined as T);
     }
@@ -161,51 +191,52 @@ export async function safeFetch<T>(url: string, options?: RequestInit): Promise<
     const dataParsingResult = await parseResponseSafe(response);
 
     if (!dataParsingResult.ok) {
-      return {
-        ok: false,
-        error: {
+      return handleError(
+        new FetchError({
           name: errorNames.parse,
           message: errorMessages.parse,
           status: response.status,
-        },
-      };
+        })
+      );
     }
 
     const parsedData = dataParsingResult.data;
+
     const data =
       typeof parsedData === 'object' && parsedData !== null && 'data' in parsedData
         ? (parsedData.data as T)
         : (parsedData as T);
 
     return createResultWithData(data);
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        return {
-          ok: false,
-          error: {
+  } catch (err) {
+    if (err instanceof FetchError) {
+      return handleError(err);
+    }
+
+    if (err instanceof Error) {
+      if (err.name === 'AbortError') {
+        return handleError(
+          new FetchError({
             name: errorNames.aborted,
             message: errorMessages.aborted,
-          },
-        };
+          })
+        );
       }
 
-      return {
-        ok: false,
-        error: {
+      return handleError(
+        new FetchError({
           name: errorNames.network,
           message: errorMessages.network,
           status: 0,
-        },
-      };
+        })
+      );
     }
 
-    return {
-      ok: false,
-      error: {
+    return handleError(
+      new FetchError({
         name: errorNames.unknown,
         message: errorMessages.unknown,
-      },
-    };
+      })
+    );
   }
 }

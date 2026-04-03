@@ -1,1 +1,1 @@
-export { TasksTable } from './ui/TasksTable';
+export { TasksTableProviders } from './ui/TasksTableProviders';

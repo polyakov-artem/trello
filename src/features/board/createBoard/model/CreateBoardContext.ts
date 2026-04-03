@@ -1,7 +1,7 @@
 import { createStrictContext, useStrictContext } from '@/shared/lib/reactStrictContext';
-import type { useModalProps } from '@/shared/ui/Modal/useModalProps';
+import type { ModalProps } from '@/shared/ui/Modal/useModalProps';
 
-export const CreateBoardContext = createStrictContext<ReturnType<typeof useModalProps>>();
+export const CreateBoardContext = createStrictContext<ModalProps>();
 
 export const useCreateBoardContext = () => {
   return useStrictContext(CreateBoardContext);

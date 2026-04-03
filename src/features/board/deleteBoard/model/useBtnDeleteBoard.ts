@@ -1,16 +1,13 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { useDeleteBoard } from './useDeleteBoard';
 import { toast } from 'react-toastify';
 import { useConfirmationContext } from '@/shared/ui/Confirmation/ConfirmationContext';
-import { useCanDeleteBoard } from './guards';
 
 export const TITLE = 'Board deletion';
 export const TEXT = 'Do you really want to delete the board?';
 
 export const useBtnDeleteBoard = (boardId: string) => {
-  const deleteBoard = useDeleteBoard();
-  const canDeleteBoard = useCanDeleteBoard();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { deleteBoard, isDeletingBoard, canDeleteBoard } = useDeleteBoard(boardId);
   const { getConfirmation } = useConfirmationContext();
 
   const deletionHandler = useCallback(async () => {
@@ -23,23 +20,18 @@ export const useBtnDeleteBoard = (boardId: string) => {
       return;
     }
 
-    const result = await deleteBoard({
-      boardId,
-      onStart: () => setIsProcessing(true),
-      onEnd: () => setIsProcessing(false),
-    });
-
-    if (result?.ok === false) {
-      toast.error(result.error.message);
+    try {
+      await deleteBoard();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
     }
-  }, [deleteBoard, boardId, getConfirmation]);
+  }, [deleteBoard, getConfirmation]);
 
   const handleClick = useCallback(() => {
     void deletionHandler();
   }, [deletionHandler]);
 
-  return useMemo(
-    () => ({ isProcessing, handleClick, isBtnDisabled: !canDeleteBoard }),
-    [isProcessing, handleClick, canDeleteBoard]
-  );
+  return { isDeletingBoard, handleClick, isBtnDisabled: !canDeleteBoard };
 };

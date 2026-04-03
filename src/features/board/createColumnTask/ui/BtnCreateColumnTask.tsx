@@ -6,9 +6,8 @@ import type { BaseButtonProps } from 'antd/es/button/button';
 import { useCanCreateColumnTask } from '../model/guards';
 
 export type BtnCreateColumnTaskProps = {
-  size?: BaseButtonProps['size'];
   columnId: string;
-  boardId: string;
+  size?: BaseButtonProps['size'];
 } & PropsWithClassName &
   PropsWithChildren;
 
@@ -17,19 +16,14 @@ export const BtnCreateColumnTask: FC<BtnCreateColumnTaskProps> = ({
   children,
   size,
   columnId,
-  boardId,
 }) => {
-  const canCreateColumnTask = useCanCreateColumnTask();
+  const isDisabled = !useCanCreateColumnTask();
   const { openModal } = useCreateColumnTaskContext();
-
-  const handleClick = useCallback(
-    () => openModal({ columnId, boardId }),
-    [boardId, columnId, openModal]
-  );
+  const handleClick = useCallback(() => openModal({ columnId }), [columnId, openModal]);
 
   return (
     <Button
-      disabled={!canCreateColumnTask}
+      disabled={isDisabled}
       size={size}
       onClick={handleClick}
       color="green"

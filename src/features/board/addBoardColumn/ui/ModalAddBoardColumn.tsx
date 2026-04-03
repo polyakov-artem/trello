@@ -9,7 +9,7 @@ export const TITLE_LABEL = 'Title';
 
 export const ModalAddBoardColumn: FC = () => {
   const {
-    isProcessing,
+    isAddingBoardColumn,
     closeModal,
     isOpen,
     isFormDisabled,
@@ -30,7 +30,13 @@ export const ModalAddBoardColumn: FC = () => {
           {TITLE_LABEL}
         </label>
 
-        <Input id="title" name="title" onChange={handleInputChange} value={values.title} />
+        <Input
+          id="title"
+          name="title"
+          onChange={handleInputChange}
+          value={values.title}
+          disabled={isFormDisabled}
+        />
         {titleError && <p className="text-red-500">{titleError}</p>}
       </div>
     </form>
@@ -40,7 +46,7 @@ export const ModalAddBoardColumn: FC = () => {
     <>
       <Button
         type="primary"
-        loading={isProcessing}
+        loading={isAddingBoardColumn}
         onClick={handleSubmitBtnClick}
         disabled={isFormDisabled}>
         Add column

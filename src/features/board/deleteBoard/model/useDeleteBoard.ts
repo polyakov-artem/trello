@@ -1,65 +1,37 @@
-import { useSessionStore } from '@/entities/session';
-import { useBoardDeletionStore, useBoardsStoreActions } from '@/entities/board';
 import { boardApi } from '@/shared/api/board/boardApi';
 import { useCallback } from 'react';
-import { useCanDeleteBoardFn } from './guards';
+import { useCanDeleteBoard } from './guards';
+import { mutationKeys, queryKeys } from '@/shared/config/queries';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSessionId } from '@/entities/session';
 
-export type DeleteBoardProps = {
-  boardId: string;
-  onStart?: () => void;
-  onEnd?: () => void;
-};
+export const useDeleteBoard = (boardId: string) => {
+  const canDeleteBoard = useCanDeleteBoard(boardId);
+  const queryClient = useQueryClient();
+  const sessionId = useSessionId();
 
-export const useDeleteBoard = () => {
-  const getSessionStoreState = useSessionStore.use.getState();
-  const canDeleteBoardFn = useCanDeleteBoardFn();
-  const setCancelRef = useBoardDeletionStore.use.setCancelReqFn();
-  const setBoardDeletionState = useBoardDeletionStore.use.setState();
-  const removeBoardFromStore = useBoardsStoreActions().removeBoard;
+  const { mutateAsync, isPending: isDeletingBoard } = useMutation({
+    mutationKey: mutationKeys.deleteBoard({
+      boardId,
+      sessionId,
+    }),
 
-  const deleteBoard = useCallback(
-    async ({ boardId, onStart, onEnd }: DeleteBoardProps) => {
-      if (!canDeleteBoardFn()) {
-        return;
-      }
-
-      onStart?.();
-
-      setBoardDeletionState({ isLoading: true, error: undefined });
-
-      const controller = new AbortController();
-      setCancelRef(() => controller.abort());
-
-      const sessionId = getSessionStoreState().value?.sessionId || '';
-
-      const result = await boardApi.deleteBoard({
-        sessionId,
-        boardId,
-        signal: controller.signal,
-      });
-      const isAborted = controller.signal.aborted;
-
-      if (!isAborted) {
-        if (result.ok) {
-          removeBoardFromStore(boardId);
-        } else {
-          setBoardDeletionState({ error: result.error });
-        }
-      }
-
-      setBoardDeletionState({ isLoading: false });
-
-      onEnd?.();
-      return isAborted ? undefined : result;
+    mutationFn: async () => {
+      await boardApi.deleteBoard({ boardId, sessionId });
     },
-    [
-      canDeleteBoardFn,
-      getSessionStoreState,
-      removeBoardFromStore,
-      setBoardDeletionState,
-      setCancelRef,
-    ]
-  );
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.boards({ sessionId }) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks({ sessionId }) });
+    },
+  });
 
-  return deleteBoard;
+  const deleteBoard = useCallback(async () => {
+    if (!canDeleteBoard) {
+      return;
+    }
+
+    return await mutateAsync();
+  }, [canDeleteBoard, mutateAsync]);
+
+  return { deleteBoard, isDeletingBoard, canDeleteBoard };
 };
